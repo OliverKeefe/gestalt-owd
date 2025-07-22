@@ -24,7 +24,9 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar.tsx"
-import {ModeToggle} from "@/components/ModeToggle.tsx";
+import {ModeToggle} from "@/components/mode-toggle.tsx";
+import {SettingsToggle} from "@/app/features/shared/components/buttons/settings-toggle.tsx";
+import {Container} from "@/app/features/shared/components/layout/container.tsx";
 
 // This is sample data.
 const data = {
@@ -58,7 +60,7 @@ const data = {
     },
     {
       title: "Home",
-      url: "#",
+      url: "/",
       icon: Home,
       isActive: true,
     },
@@ -261,7 +263,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar className="border-r-0" {...props}>
       <SidebarHeader>
-        <ModeToggle />
+        <div className="row-auto">
+            <ModeToggle />
+            <SettingsToggle />
+        </div>
+
         <TeamSwitcher teams={data.teams} />
         <NavMain items={data.navMain} />
       </SidebarHeader>
