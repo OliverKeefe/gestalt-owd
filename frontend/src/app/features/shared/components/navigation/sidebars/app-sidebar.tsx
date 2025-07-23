@@ -1,16 +1,19 @@
 import * as React from "react"
 import {
-  AudioWaveform,
-  Blocks,
-  Calendar,
-  Command,
-  Home,
-  Inbox,
-  MessageCircleQuestion,
-  Search,
-  Settings2,
-  Sparkles,
-  Trash2,
+    AudioWaveform,
+    Blocks,
+    Calendar,
+    Command,
+    Home,
+    File,
+    MessageCircleQuestion,
+    Search,
+    Settings2,
+    Image,
+    Trash2,
+    CircleUser,
+    School,
+    BriefcaseBusiness,
 } from "lucide-react"
 
 import { NavFavorites } from "@/app/features/shared/components/navigation/nav-favorites.tsx"
@@ -28,22 +31,21 @@ import {ModeToggle} from "@/components/mode-toggle.tsx";
 import {SettingsToggle} from "@/app/features/shared/components/buttons/settings-toggle.tsx";
 import {Container} from "@/app/features/shared/components/layout/container.tsx";
 
-// This is sample data.
 const data = {
   teams: [
     {
-      name: "Acme Inc",
-      logo: Command,
+      name: "Personal",
+      logo: CircleUser,
       plan: "Enterprise",
     },
     {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
+      name: "University Of Essex",
+      logo: School,
       plan: "Startup",
     },
     {
-      name: "Evil Corp.",
-      logo: Command,
+      name: "Company ltd",
+      logo: BriefcaseBusiness,
       plan: "Free",
     },
   ],
@@ -54,20 +56,20 @@ const data = {
       icon: Search,
     },
     {
-      title: "Ask AI",
-      url: "#",
-      icon: Sparkles,
-    },
-    {
       title: "Home",
       url: "/",
       icon: Home,
       isActive: true,
     },
     {
-      title: "Inbox",
-      url: "#",
-      icon: Inbox,
+      title: "Photos",
+      url: "/photos",
+      icon: Image,
+    },
+    {
+      title: "Documents",
+      url: "/documents",
+      icon: File,
       badge: "10",
     },
   ],
@@ -114,41 +116,6 @@ const data = {
       url: "#",
       emoji: "💪",
     },
-    {
-      name: "Book Notes & Reading List",
-      url: "#",
-      emoji: "📚",
-    },
-    {
-      name: "Sustainable Gardening Tips & Plant Care",
-      url: "#",
-      emoji: "🌱",
-    },
-    {
-      name: "Language Learning Progress & Resources",
-      url: "#",
-      emoji: "🗣️",
-    },
-    {
-      name: "Home Renovation Ideas & Budget Tracker",
-      url: "#",
-      emoji: "🏠",
-    },
-    {
-      name: "Personal Finance & Investment Portfolio",
-      url: "#",
-      emoji: "💰",
-    },
-    {
-      name: "Movie & TV Show Watchlist with Reviews",
-      url: "#",
-      emoji: "🎬",
-    },
-    {
-      name: "Daily Habit Tracker & Goal Setting",
-      url: "#",
-      emoji: "✅",
-    },
   ],
   workspaces: [
     {
@@ -161,12 +128,12 @@ const data = {
           emoji: "📔",
         },
         {
-          name: "Health & Wellness Tracker",
+          name: "Health & Wellness",
           url: "#",
           emoji: "🍏",
         },
         {
-          name: "Personal Growth & Learning Goals",
+          name: "School Files",
           url: "#",
           emoji: "🌟",
         },
@@ -263,11 +230,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar className="border-r-0" {...props}>
       <SidebarHeader>
-        <div className="row-auto">
-            <ModeToggle />
-            <SettingsToggle />
-        </div>
-
         <TeamSwitcher teams={data.teams} />
         <NavMain items={data.navMain} />
       </SidebarHeader>
