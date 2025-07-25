@@ -1,21 +1,27 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar.tsx"
-import { AppSidebar } from "@/app/features/shared/components/navigation/sidebars/app-sidebar.tsx";
-import { Outlet } from "react-router-dom";
-import { AppTopbar } from "../navigation/topbars/app-topbar";
-//import AppTopbar from "@/components/shared/navigation/sidebars/app-topbar.tsx";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/app/features/shared/components/navigation/sidebars/app-sidebar"
+import { Outlet } from "react-router-dom"
+import { AppTopbar } from "../navigation/topbars/app-topbar"
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+interface LayoutProps {
+    children?: React.ReactNode;
+}
+
+export default function Layout({ children }: LayoutProps) {
     return (
-        <>
-            <AppTopbar />
-                <SidebarProvider>
+        <SidebarProvider>
+            <div className="flex min-w-screen">
                 <AppSidebar />
-                <main className={"flex-1"}>
-                    <SidebarTrigger />
-                    {children}
-                    <Outlet />
-                </main>
-            </SidebarProvider>
-        </>
+                <div className="flex flex-1 flex-col">
+                    <AppTopbar>
+                        <SidebarTrigger />
+                    </AppTopbar>
+                    <main className="flex-1">
+                        {children}
+                        <Outlet />
+                    </main>
+                </div>
+            </div>
+        </SidebarProvider>
     )
 }
