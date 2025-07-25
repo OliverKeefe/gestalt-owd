@@ -12,19 +12,31 @@ import {
 import { ModeToggle } from "@/components/mode-toggle"
 import { SettingsToggle } from "../../buttons/settings-toggle"
 
-interface AppTopbarProps extends React.HTMLAttributes<HTMLDivElement> {}
+interface AppTopbarProps extends React.HTMLAttributes<HTMLDivElement> {
+    children?: React.ReactNode;
 
-export function AppTopbar({ className, ...props }: AppTopbarProps) {
+}
+
+export function AppTopbar({ children, className, ...props }: AppTopbarProps) {
     return (
         <header
-            className={`flex items-center justify-between px-4 py-2 ${className}`}
+            className={`flex w-full items-center px-4 py-2 ${className}`}
             {...props}
         >
-            <div className="text-lg font-semibold"></div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
+                {children}
+            </div>
+
+            <div className="ml-auto flex items-center gap-2">
                 <ModeToggle />
                 <SettingsToggle />
+                <Avatar>
+                    <AvatarImage>
+                    </AvatarImage>
+                    <AvatarFallback>OK</AvatarFallback>
+                </Avatar>
             </div>
         </header>
     )
 }
+
