@@ -118,3 +118,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+.glass-gradient {
+  background: linear-gradient(
+          135deg,
+          oklch(1 0 0 / 40%) 0%,
+          oklch(1 0 0 / 10%) 100%
+  );
+  backdrop-filter: blur(25px) saturate(200%);
+  border: 1px solid oklch(0 0 0 / 10%);
+}
