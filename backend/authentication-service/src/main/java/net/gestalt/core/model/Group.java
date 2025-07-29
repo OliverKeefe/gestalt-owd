@@ -1,6 +1,6 @@
 package net.gestalt.core.model;
 
-public class Groups {
+public class Group {
     private Long id;
     private String name;
 
