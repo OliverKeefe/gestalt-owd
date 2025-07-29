@@ -7,8 +7,9 @@ public class User {
     private String email;
     private String secondaryEmail;
     private String hashedPassword;
-    private Set<String> role;
-    private Set<String> organization;
+    private Set<Role> roles;
+    private Set<Group> groups;
+    private Set<Organization> organizations;
 
     public Long getId() {
         return id;
@@ -42,19 +43,27 @@ public class User {
         return hashedPassword;
     }
 
-    public Set<String> getOrganization() {
-        return organization;
+    public Set<Group> getGroups() {
+        return groups;
     }
 
-    public void setOrganization(Set<String> organization) {
-        this.organization = organization;
+    public void setGroups(Set<Group> groups) {
+        this.groups = groups;
     }
 
-    public Set<String> getRole() {
-        return role;
+    public Set<Organization> getOrganization() {
+        return organizations;
     }
 
-    public void setRole(Set<String> role) {
-        this.role = role;
+    public void setOrganization(Set<Organization> organizations) {
+        this.organizations = organizations;
+    }
+
+    public Set<Role> getRole() {
+        return roles;
+    }
+
+    public void setRole(Set<Role> role) {
+        this.roles = role;
     }
 }
