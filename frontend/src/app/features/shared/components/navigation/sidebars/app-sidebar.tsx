@@ -1,10 +1,7 @@
 import * as React from "react"
 import {
-    AudioWaveform,
     Blocks,
     Calendar,
-    Command,
-    Home,
     File,
     MessageCircleQuestion,
     Search,
@@ -14,6 +11,7 @@ import {
     CircleUser,
     School,
     BriefcaseBusiness,
+    FolderClosed,
 } from "lucide-react"
 
 import { NavFavorites } from "@/app/features/shared/components/navigation/nav-favorites.tsx"
@@ -27,9 +25,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar.tsx"
-import {ModeToggle} from "@/components/mode-toggle.tsx";
-import {SettingsToggle} from "@/app/features/shared/components/buttons/settings-toggle.tsx";
-import {Container} from "@/app/features/shared/components/layout/container.tsx";
+
 
 const data = {
   teams: [
@@ -56,9 +52,9 @@ const data = {
       icon: Search,
     },
     {
-      title: "Home",
+      title: "Files",
       url: "/",
-      icon: Home,
+      icon: FolderClosed,
       isActive: true,
     },
     {
