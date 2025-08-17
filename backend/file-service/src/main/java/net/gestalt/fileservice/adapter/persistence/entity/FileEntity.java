@@ -10,27 +10,27 @@ import java.util.UUID;
 @Table(name = "files")
 public class FileEntity extends PanacheEntityBase {
 
-    @Id @GeneratedValue private UUID id;
+    @Id @GeneratedValue public UUID id;
 
-    @GeneratedValue private UUID orgId;
+    @GeneratedValue public UUID orgId;
 
-    @GeneratedValue private UUID ownerId;
+    @GeneratedValue public UUID ownerId;
 
     @Column(name = "storage_type")
-    private String storageType;
+    public String storageType;
 
     @Column(name = "storage_key")
-    private String storageKey;
+    public String storageKey;
 
     @Column(name = "file_size")
-    private Long fileSize;
+    public Long fileSize;
 
     @Column(name = "checksum")
-    private String checksum;
+    public String checksum;
 
     @Column(name = "created_at")
-    private Instant createdAt;
+    public Instant createdAt;
 
     @Column(name = "last_modified_at")
-    private Instant lastModifiedAt;
+    public Instant lastModifiedAt;
 }
