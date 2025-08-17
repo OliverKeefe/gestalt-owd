@@ -14,6 +14,9 @@ dependencies {
     implementation 'io.quarkus:quarkus-rest'
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'
+    implementation 'io.quarkus:quarkus-jdbc-postgresql'
+    implementation 'io.quarkus:quarkus-hibernate-orm'
+    implementation 'io.quarkus:quarkus-hibernate-orm-panache:3.25.3'
 }
 
 group 'net.gestalt'
