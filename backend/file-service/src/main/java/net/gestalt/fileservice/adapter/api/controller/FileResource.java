@@ -28,12 +28,11 @@ public class FileResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFile (FileRequest fileRequest) {
         FileModel fileModel;
-
         try {
-            FileModel fileModel = fileMapper.requestToModel(fileRequest);
+            fileModel = fileMapper.toModel(fileRequest);
         } catch (Exception e) {
             // Log exception
-            return Response.status(HttpStatus.BAD_REQUEST).build();
+            return Response.status(400, "Invalid Request").build();
         }
 
         FileResponse fileResponse = metadataService.getFile(fileModel);
