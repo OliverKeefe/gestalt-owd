@@ -4,5 +4,8 @@ import net.gestalt.fileservice.adapter.api.dto.response.FileResponse;
 import net.gestalt.fileservice.core.model.FileModel;
 
 public interface MetadataServicePort {
-    FileResponse getFile(FileModel fileModel);
+    boolean createFileInfo(FileModel fileModel);
+    FileModel getFileInfo(FileModel fileModel);
+    boolean updateFileInfo(FileModel fileModel);
+    boolean deleteFileInfo(FileModel fileModel);
 }

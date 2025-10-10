@@ -1,4 +1,4 @@
 package net.gestalt.fileservice.core.port.outbound;
 
-public interface IPFSServicePort {
+public interface IPFSHandlerPort {
 }

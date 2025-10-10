@@ -14,7 +14,7 @@ public class PasswordService {
         int memory = 65536;
         int parallelism = 1;
 
-        return argon2.hash(iterations,memory, parallelism, password.toCharArray());
+        return argon2.hash(iterations, memory, parallelism, password.toCharArray());
     }
 
     public boolean verifyPassword(String passwordHash, String passwordPlainText) {
