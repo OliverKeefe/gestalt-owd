@@ -1,4 +1,4 @@
 package net.gestalt.fileservice.core.port.inbound;
 
-public interface DownloadServicePort {
+public interface StorageServicePort {
 }
