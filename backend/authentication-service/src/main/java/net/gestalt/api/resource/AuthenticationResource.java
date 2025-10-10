@@ -2,6 +2,7 @@ package net.gestalt.api.resource;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import net.gestalt.api.dto.login.LoginRequest;
 import net.gestalt.data.entity.User;
@@ -13,7 +14,8 @@ public class AuthenticationResource {
     @Path("/login")
     @Produces(MediaType.APPLICATION_JSON)
     public String login(LoginRequest loginRequest) {
-        User user = userService.find
+
+        NewCookie refreshCookie = new NewCookie("refreshToken", refreshToken)
 
         return "";
     }
