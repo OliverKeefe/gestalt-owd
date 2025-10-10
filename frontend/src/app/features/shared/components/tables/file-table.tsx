@@ -38,45 +38,43 @@ export function FileTable() {
     };
 
     return (
-            <Card className="pt-0">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[30px]">
-                                <Checkbox
-                                    checked={selected.length === data.files.length}
-                                    onCheckedChange={(checked) => {
-                                        if (checked) {
-                                            setSelected(data.files.map((file) => file.id));
-                                        } else {
-                                            setSelected([]);
-                                        }
-                                    }}
-                                />
-                            </TableHead>
-                            <TableHead className="w-[100px]">Last Modified</TableHead>
-                            <TableHead>Access</TableHead>
-                            <TableHead>Name</TableHead>
-                            <TableHead className="text-right">Type</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {data.files.map((file) => (
-                            <TableRow key={file.id}>
-                                <TableCell>
-                                    <Checkbox
-                                        checked={selected.includes(file.id)}
-                                        onCheckedChange={() => toggleSelect(file.id)}
-                                    />
-                                </TableCell>
-                                <TableCell className="font-medium">{file.lastModified}</TableCell>
-                                <TableCell>{file.access}</TableCell>
-                                <TableCell>{file.icon} {file.name}</TableCell>
-                                <TableCell className="text-right">{file.type}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </Card>
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead className="w-[30px]">
+                        <Checkbox
+                            checked={selected.length === data.files.length}
+                            onCheckedChange={(checked) => {
+                                if (checked) {
+                                    setSelected(data.files.map((file) => file.id));
+                                } else {
+                                    setSelected([]);
+                                }
+                            }}
+                        />
+                    </TableHead>
+                    <TableHead className="w-[100px]">Last Modified</TableHead>
+                    <TableHead>Access</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead className="text-right">Type</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {data.files.map((file) => (
+                    <TableRow key={file.id}>
+                        <TableCell>
+                            <Checkbox
+                                checked={selected.includes(file.id)}
+                                onCheckedChange={() => toggleSelect(file.id)}
+                            />
+                        </TableCell>
+                        <TableCell className="font-medium">{file.lastModified}</TableCell>
+                        <TableCell>{file.access}</TableCell>
+                        <TableCell>{file.icon} {file.name}</TableCell>
+                        <TableCell className="text-right">{file.type}</TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
     );
 }
