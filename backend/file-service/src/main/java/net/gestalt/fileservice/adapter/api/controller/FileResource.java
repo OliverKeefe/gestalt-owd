@@ -26,7 +26,7 @@ public class FileResource {
     @Path("/get")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFile (FileRequest fileRequest) {
+    public Response getFileMetadata(FileRequest fileRequest) {
         FileModel fileModel;
         try {
             fileModel = fileMapper.toModel(fileRequest);
@@ -34,8 +34,9 @@ public class FileResource {
             // Log exception
             return Response.status(400, "Invalid Request").build();
         }
-
-        FileResponse fileResponse = metadataService.getFile(fileModel);
+        FileResponse fileResponse = metadataService.getFileInfo(fileModel);
         return Response.ok(fileResponse).build();
     }
+
+
 }

@@ -81,12 +81,12 @@ const data = {
       icon: Settings2,
     },
     {
-      title: "Templates",
+      title: "Apps",
       url: "#",
       icon: Blocks,
     },
     {
-      title: "Trash",
+      title: "Rubbish",
       url: "#",
       icon: Trash2,
     },
@@ -115,44 +115,44 @@ const data = {
   ],
   workspaces: [
     {
-      name: "Personal Life Management",
+      name: "House Move",
       emoji: "🏠",
       pages: [
         {
-          name: "Daily Journal & Reflection",
+          name: "Daily Journal & Reflection.note",
           url: "#",
           emoji: "📔",
         },
         {
-          name: "Health & Wellness",
+          name: "List_of_localPubs.docx",
           url: "#",
-          emoji: "🍏",
+          emoji: "📁",
         },
         {
-          name: "School Files",
+          name: "Contents Insurance Files",
           url: "#",
-          emoji: "🌟",
+          emoji: "📁",
         },
       ],
     },
     {
-      name: "Professional Development",
+      name: "Professional",
       emoji: "💼",
       pages: [
         {
           name: "Career Objectives & Milestones",
           url: "#",
-          emoji: "🎯",
+          emoji: "📁",
         },
         {
           name: "Skill Acquisition & Training Log",
           url: "#",
-          emoji: "🧠",
+          emoji: "📁",
         },
         {
           name: "Networking Contacts & Events",
           url: "#",
-          emoji: "🤝",
+          emoji: "📁",
         },
       ],
     },
@@ -163,12 +163,12 @@ const data = {
         {
           name: "Writing Ideas & Story Outlines",
           url: "#",
-          emoji: "✍️",
+          emoji: "📁",
         },
         {
           name: "Art & Design Portfolio",
           url: "#",
-          emoji: "🖼️",
+          emoji: "📁",
         },
         {
           name: "Music Composition & Practice Log",
@@ -182,40 +182,40 @@ const data = {
       emoji: "🏡",
       pages: [
         {
-          name: "Household Budget & Expense Tracking",
+          name: "Household Budget & Expense Tracking.docx",
           url: "#",
-          emoji: "💰",
+          emoji: "📁",
         },
         {
-          name: "Home Maintenance Schedule & Tasks",
+          name: "Home Maintenance Schedule & Tasks.docx",
           url: "#",
-          emoji: "🔧",
+          emoji: "📁",
         },
         {
           name: "Family Calendar & Event Planning",
           url: "#",
-          emoji: "📅",
+          emoji: "📁",
         },
       ],
     },
     {
-      name: "Travel & Adventure",
+      name: "Travel & Holidays",
       emoji: "🧳",
       pages: [
         {
           name: "Trip Planning & Itineraries",
           url: "#",
-          emoji: "🗺️",
+          emoji: "📁",
         },
         {
           name: "Travel Bucket List & Inspiration",
           url: "#",
-          emoji: "🌎",
+          emoji: "📁",
         },
         {
           name: "Travel Journal & Photo Gallery",
           url: "#",
-          emoji: "📸",
+          emoji: "📁",
         },
       ],
     },
