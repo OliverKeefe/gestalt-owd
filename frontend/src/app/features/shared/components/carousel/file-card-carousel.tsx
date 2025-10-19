@@ -1,4 +1,4 @@
-import { FileCard } from "../cards/file-card";
+import { FileCard } from    "../cards/file-card";
 import {Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious} from "@/components/ui/carousel.tsx";
 import { Container } from "../layout/container";
 
@@ -37,9 +37,10 @@ export function FileCardCarousel() {
                     {data.files.map((file) => (
                         <CarouselItem
                             key={file.id}
-                            className="pl-1 basis-full sm:basis-1/2 lg:basis-1/4 xl:basis-1/5"
+                            //className="p-5 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                            className="p-5 basis-full sm:basis-1/2 lg:basis-70 xl:basis-80"
                         >
-                            <div className="p-1">
+                            <div className="m-2 p-1">
                                 <FileCard {...file} />
                             </div>
                         </CarouselItem>
