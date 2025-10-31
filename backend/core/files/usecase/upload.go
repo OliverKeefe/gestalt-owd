@@ -59,3 +59,7 @@ func (upload UploadFile) Service(request *http.Request) (bool, error) {
 
 	return true, nil
 }
+
+func (upload UploadFile) Database() (bool, error) {
+	return true, nil
+}
