@@ -50,3 +50,12 @@ func (upload UploadFile) Api(writer http.ResponseWriter, request *http.Request) 
 		return
 	}
 }
+
+func (upload UploadFile) Service(request *http.Request) (bool, error) {
+	err := request.ParseMultipartForm(15000)
+	if err != nil {
+		return false, fmt.Errorf("could not upload file %e")
+	}
+
+	return true, nil
+}
