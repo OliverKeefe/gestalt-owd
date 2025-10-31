@@ -1,4 +1,9 @@
-package model
+package files
+
+import (
+	"io/fs"
+	"time"
+)
 
 type File struct {
 	Metadata MetaData
