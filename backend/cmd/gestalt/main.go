@@ -9,6 +9,7 @@ import (
 
 func main() {
 	mux := http.NewServeMux()
+	blob.NewBlobStore("/home/oliver/Development/25-26_CE301_keefe_oliver_b/backend/cmd/gestalt")
 
 	port := ":8081"
 
