@@ -17,4 +17,6 @@ type MacOSXMetaData struct{}
 
 type WindowsMetaData struct{}
 
+type GNULinuxMetaData struct{}
+
 type iPadOSMetaData struct{}
