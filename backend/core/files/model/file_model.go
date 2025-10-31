@@ -13,4 +13,6 @@ type MetaData struct {
 	IsDirectory  bool
 }
 
+type MacOSXMetaData struct{}
+
 type iPadOSMetaData struct{}
