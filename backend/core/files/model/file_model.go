@@ -12,3 +12,5 @@ type MetaData struct {
 	LastModified time.Time
 	IsDirectory  bool
 }
+
+type iPadOSMetaData struct{}
