@@ -21,4 +21,6 @@ type GNULinuxMetaData struct{}
 
 type AndroidMetaData struct{}
 
+type iOSMetaData struct{}
+
 type iPadOSMetaData struct{}
