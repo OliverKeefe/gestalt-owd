@@ -1,11 +1,15 @@
 package files
 
 import (
-	model "backend/core/files/model"
+	"backend/src/core/blob"
+	model "backend/src/core/files/model"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
+	"time"
 )
 
 type UploadFile struct {
@@ -54,10 +58,49 @@ func (upload UploadFile) Api(writer http.ResponseWriter, request *http.Request) 
 func (upload UploadFile) Service(request *http.Request) (bool, error) {
 	err := request.ParseMultipartForm(15000)
 	if err != nil {
-		return false, fmt.Errorf("could not upload file %e")
+		return false, fmt.Errorf("could not upload file %e", err)
 	}
 
-	return true, nil
+	file, header, err := request.FormFile("file")
+	if err != nil {
+		return false, fmt.Errorf("error getting file from request %e", err)
+	}
+	defer func(file multipart.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Errorf("unable to close file %e", err)
+		}
+	}(file)
+
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		return false, fmt.Errorf("error reading file %e", err)
+	}
+
+	meta := model.MetaData{
+		Filename:     header.Filename,
+		Size:         uint64(len(fileBytes)),
+		Permissions:  0,
+		LastModified: time.Time{},
+		IsDirectory:  false,
+	}
+
+	uploadedFile := model.File{
+		Metadata: meta,
+		FileData: fileBytes,
+	}
+
+	var defaultStore = blob.Store{
+		BasePath: "/home/oliver/Development/25-26_CE301_keefe_oliver_b",
+		Path:     "/backend/src/cmd/gestalt/",
+	}
+
+	saveTo, err := blob.Save(defaultStore, uploadedFile)
+	if err != nil {
+		return false, fmt.Errorf("unable to save file in blob %e", err)
+	}
+
+	return saveTo, nil
 }
 
 func (upload UploadFile) Database() (bool, error) {
