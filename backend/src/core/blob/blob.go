@@ -1,8 +1,8 @@
 package blob
 
 import (
+	model "backend/src/core/files/model"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 )
@@ -21,8 +21,8 @@ func NewBlobStore(basePath string, path string) *Store {
 	}
 }
 
-func (blob Store) Save(file string) (bool, error) {
-	panic("not implemented yet")
+func Init() {
+	defaultStore = NewBlobStore("./blob", "/tmp/")
 }
 
 //func (blob Store) Get(filename string) { panic("not implemented yet") }
