@@ -28,7 +28,10 @@ type GNULinuxMetaData struct {
 	Device   string
 	Inode    uint64
 	Links    uint8
-	Access
+	Access   string
+	Modify   string
+	Change   string
+	Birth    string
 }
 
 type AndroidMetaData struct{}
