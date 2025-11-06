@@ -17,6 +17,8 @@ type MacOSXMetaData struct{}
 
 type WindowsMetaData struct{}
 
+type Birth struct {
+}
 type GNULinuxMetaData struct {
 	File     string
 	Size     uint64
