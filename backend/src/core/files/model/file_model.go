@@ -17,15 +17,3 @@ type MetaData struct {
 	LastModified time.Time
 	IsDirectory  bool
 }
-
-type MacOSXMetaData struct{}
-
-type WindowsMetaData struct{}
-
-type GNULinuxMetaData struct{}
-
-type AndroidMetaData struct{}
-
-type iOSMetaData struct{}
-
-type iPadOSMetaData struct{}
