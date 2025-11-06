@@ -1,5 +1,18 @@
 package filesystem
 
+import "time"
+
+type ISO8601Date time.Time
+
+const isoLayout = "2006-01-02"
+
+func (d ISO8601Date) String() string {
+	t := time.Time(d)
+	return t.Format(isoLayout)
+}
+
+// type time
+
 type MacOSXMetaData struct{}
 
 type WindowsMetaData struct{}
