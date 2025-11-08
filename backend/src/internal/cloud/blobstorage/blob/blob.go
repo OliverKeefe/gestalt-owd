@@ -34,9 +34,10 @@ func Init() {
 	defaultStore = NewBlobStore("./blob", "/tmp/")
 }
 
-//func (blob Store) Get(filename string) { panic("not implemented yet") }
-//
-//func (blob Store) Delete() (bool, error) { panic("not implemented yet") }
+func (blob Store) GetBlob(filename string) {
+	panic("not implemented yet")
+
+}
 
 func Save(blobstore Store, file model.File) (bool, error) {
 	if err := os.MkdirAll(blobstore.BasePath, os.ModePerm); err != nil {
