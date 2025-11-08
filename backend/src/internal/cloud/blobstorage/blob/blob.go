@@ -5,11 +5,20 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 type Store struct {
 	BasePath string
 	Path     string
+}
+
+type BlobMetaData struct {
+	Key        string
+	Size       uint64
+	CreatedAt  time.Time
+	ModifiedAt time.Time
+	MetaData   map[string]string
 }
 
 var defaultStore *Store
