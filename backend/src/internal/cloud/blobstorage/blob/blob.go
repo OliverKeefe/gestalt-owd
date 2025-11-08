@@ -39,7 +39,11 @@ func (blob Store) GetBlob(filename string) {
 
 }
 
-func Save(blobstore Store, file model.File) (bool, error) {
+func (blob Store) Delete() (bool, error) {
+	panic("not implemented yet")
+}
+
+func (blob Store) Save(blobstore *Store, file model.File) (bool, error) {
 	if err := os.MkdirAll(blobstore.BasePath, os.ModePerm); err != nil {
 		return false, fmt.Errorf("failed to create base path %e", err)
 	}
