@@ -21,6 +21,22 @@ type BlobMetaData struct {
 	MetaData   map[string]string
 }
 
+/*
+ - Store a blob with key (path / id) and metadata
+
+ - Retrieve a blos data and metadata
+
+ - Delete a blob
+
+ - Check if a blob exists
+
+ - List blobs
+
+ - move or rename a blob
+
+ - retrieve metadata without reading a full blob
+*/
+
 var defaultStore *Store
 
 func NewBlobStore(basePath string, path string) *Store {
@@ -30,20 +46,20 @@ func NewBlobStore(basePath string, path string) *Store {
 	}
 }
 
-func Init() {
+func init() {
 	defaultStore = NewBlobStore("./blob", "/tmp/")
 }
 
-func (blob Store) GetBlob(filename string) {
+func (blob *Store) GetBlob(filename string) {
 	panic("not implemented yet")
 
 }
 
-func (blob Store) Delete() (bool, error) {
+func (blob *Store) Delete() (bool, error) {
 	panic("not implemented yet")
 }
 
-func (blob Store) Save(blobstore *Store, file model.File) (bool, error) {
+func Save(blobstore *Store, file model.File) (bool, error) {
 	if err := os.MkdirAll(blobstore.BasePath, os.ModePerm); err != nil {
 		return false, fmt.Errorf("failed to create base path %e", err)
 	}
