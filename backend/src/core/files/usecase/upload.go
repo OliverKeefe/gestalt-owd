@@ -106,3 +106,28 @@ func (upload UploadFile) Service(request *http.Request) (bool, error) {
 func (upload UploadFile) Database() (bool, error) {
 	return true, nil
 }
+
+func uploadHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Parse up to 10MB in memory - this'll need to be increased to 15gb at somepoint.
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		http.Error(w, "Failed to parse multipart form: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "Failed to read file: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	fmt.Printf("Received file: %s\n", header.Filename)
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "File uploaded successfully!")
+}
