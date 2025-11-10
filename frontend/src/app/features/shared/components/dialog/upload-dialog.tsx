@@ -18,15 +18,43 @@ type UploadDialogProps = {
 
 export function UploadDialog({children}: UploadDialogProps) {
     const [open, setDialogOpen] = useState(false);
-    const [files, setFiles] = useState<File[] | undefined>();
+    const [files, setFiles] = useState<File[] | null>(null);
     const handleDrop = (files: File[]) => {
         console.log(files);
         setFiles(files);
     };
 
-    async function handleUpload(): Promise<void> {
-        return
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files?.length) {
+            setFiles(Array.from(e.target.files));
+        }
     }
+
+    async function handleUpload(): Promise<void> {
+        if (!files) {
+            return alert("Can't upload an empty file.")
+        }
+
+        const formData = new FormData();
+        files.forEach((file) => {
+            formData.append("file", file);
+        })
+
+
+        try {
+            const response = await fetch("http://127.0.0.1:8081/files/upload", {
+                method: "PUT",
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error(`Upload failed with status ${response.status}`);
+            }
+
+        } catch (err) {
+            throw new Error("failed to upload file.", err);
+        }
+    };
 
     return (
         <Dialog open={open} onOpenChange={setDialogOpen}>
