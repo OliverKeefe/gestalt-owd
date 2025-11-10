@@ -2,6 +2,7 @@ package main
 
 import (
 	files "backend/src/core/files/usecase"
+	"backend/src/internal/middleware"
 	"context"
 	"fmt"
 	"log"
@@ -22,6 +23,7 @@ func (mdl model) View() string                            { return "Backend runn
 func main() {
 	port := ":8081"
 	mux := http.NewServeMux()
+	corsHandler := middleware.EnableCORS(mux)
 
 	upload := files.UploadFile{}
 	upload.RegisterRoutes(mux)
@@ -36,6 +38,7 @@ func main() {
 
 	go func() {
 		fmt.Printf("starting backend on port %s\n", port)
+		log.Fatal(http.ListenAndServe(":8081", corsHandler))
 
 		err := http.ListenAndServe(port, mux)
 		if err != nil {
