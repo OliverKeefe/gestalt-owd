@@ -1,8 +1,9 @@
 package files
 
 import (
-	"backend/src/core/blob"
 	model "backend/src/core/files/model"
+	"backend/src/internal/cloud/objectstorage/obj"
+	"backend/src/internal/middleware"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,7 +18,7 @@ type UploadFile struct {
 }
 
 func (upload UploadFile) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/files/upload", upload.Api)
+	mux.Handle("/files/upload", middleware.EnableCORS(http.HandlerFunc(upload.Api)))
 }
 
 func (upload UploadFile) Api(writer http.ResponseWriter, request *http.Request) {
@@ -90,14 +91,14 @@ func (upload UploadFile) Service(request *http.Request) (bool, error) {
 		FileData: fileBytes,
 	}
 
-	var defaultStore = blob.Store{
+	var defaultStore = &gestaltoblob.Store{
 		BasePath: "/home/oliver/Development/25-26_CE301_keefe_oliver_b",
 		Path:     "/backend/src/cmd/gestalt/",
 	}
 
-	saveTo, err := blob.Save(defaultStore, uploadedFile)
+	saveTo, err := gestaltoblob.Save(defaultStore, uploadedFile)
 	if err != nil {
-		return false, fmt.Errorf("unable to save file in blob %e", err)
+		return false, fmt.Errorf("unable to save file in obj %e", err)
 	}
 
 	return saveTo, nil
