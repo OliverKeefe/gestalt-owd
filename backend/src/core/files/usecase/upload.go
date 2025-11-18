@@ -91,12 +91,13 @@ func (upload UploadFile) Service(request *http.Request) (bool, error) {
 		FileData: fileBytes,
 	}
 
-	var defaultStore = &gestaltoblob.Store{
-		BasePath: "/home/oliver/Development/25-26_CE301_keefe_oliver_b",
-		Path:     "/backend/src/cmd/gestalt/",
+	var defaultStore = &objectstorage.ObjectStore{
+		BasePath:  "/home/oliver/Development/25-26_CE301_keefe_oliver_b",
+		Path:      "/backend/src/cmd/gestalt/",
+		NameSpace: "hello",
 	}
 
-	saveTo, err := gestaltoblob.Save(defaultStore, uploadedFile)
+	saveTo, err := objectstorage.Save(defaultStore, uploadedFile)
 	if err != nil {
 		return false, fmt.Errorf("unable to save file in obj %e", err)
 	}
