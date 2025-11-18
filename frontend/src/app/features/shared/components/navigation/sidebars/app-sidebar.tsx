@@ -25,7 +25,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar.tsx"
-
+import { UploadDialog } from "@/app/features/shared/components/dialog/upload-dialog.tsx";
 
 const data = {
   teams: [
@@ -228,6 +228,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
         <NavMain items={data.navMain} />
+          <UploadDialog />
       </SidebarHeader>
       <SidebarContent>
         <NavFavorites favorites={data.favorites} />

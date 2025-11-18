@@ -1,0 +1,33 @@
+image: golang:1.25
+
+stages:
+  - test
+  - build
+  - deploy
+
+services:
+  - docker:dind
+      
+
+format:
+  stage: test
+  script:
+    - go fmt $(go list ./... | grep -v /vendor/)
+    - go vet $(go list ./... | grep -v /vendor/)
+    - go test -race $(go list ./... | grep -v /vendor/)
+
+compile:
+  stage: build
+  script:
+    - mkdir -p build
+    - go build -o build ./...
+  artifacts:
+    paths:
+      - build
+
+deploy:
+  stage: deploy
+  script: 
+      - docker-compose down
+      - docker-compose up --build
+  environment: test
