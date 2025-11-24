@@ -1,4 +1,7 @@
-# Gestalt
+# Gestalto
+![Backend](https://img.shields.io/github/actions/workflow/status/OliverKeefe/gestalto/go-tests.yml?branch=main)
+
+
 ### A Client-Side Encrypted, Privacy Focused Cloud Storage Platform Leveraging IPFS
 
 #### Quickstart: Run in Dev Environment
@@ -8,6 +11,7 @@
 cd frontend \
 npm run dev
 ```
+
 
 **Run test Auth Docker Container**
 ```shell

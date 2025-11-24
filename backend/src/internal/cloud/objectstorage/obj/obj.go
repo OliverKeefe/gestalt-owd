@@ -2,7 +2,11 @@ package objectstorage
 
 import (
 	model "backend/src/core/files/model"
+	"backend/src/internal/util"
+	"context"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx"
 	"os"
 	"path/filepath"
 	"time"
@@ -38,6 +42,44 @@ type ObjectMetaData struct {
  - retrieve metadata without reading a full obj
 */
 
+type Bucket struct {
+	ID              uuid.UUID
+	Name            string
+	Size            uint64
+	Creator         uuid.UUID
+	Owner           uuid.UUID
+	GroupMembership []uuid.UUID
+}
+
+// TODO: make params functional options pattern (options ... func(*Bucket)) *Bucket or config struct
+func (Bucket) NewObjectBucket(ctx context.Context, conn pgx.Conn, name string, size uint64,
+	creator uuid.UUID, owner uuid.UUID, groupMembership []uuid.UUID) (Bucket, error) {
+
+	var id uuid.UUID
+
+	for {
+		id = uuid.New()
+		unique, err := util.IsUUIDUnique(ctx, id, conn, "object_storage_buckets")
+		if err != nil {
+			return Bucket{}, err
+		}
+		if unique {
+			break
+		}
+	}
+
+	bucket := Bucket{
+		ID:              id,
+		Name:            name,
+		Size:            size,
+		Creator:         creator,
+		Owner:           owner,
+		GroupMembership: groupMembership,
+	}
+
+	return bucket, nil
+}
+
 var defaultStore *ObjectStore
 
 func NewObjStore(basePath string, path string, ns string) *ObjectStore {
@@ -49,7 +91,7 @@ func NewObjStore(basePath string, path string, ns string) *ObjectStore {
 }
 
 func init() {
-	defaultStore = NewObjStore("./obj", "/tmp/")
+	defaultStore = NewObjStore("./obj", "/tmp/", "fileplace")
 }
 
 func (obj *ObjectStore) GetObjStore(filename string) {
