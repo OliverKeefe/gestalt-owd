@@ -1,8 +1,8 @@
 <h1 align="center"> Gestalto </h1>
 
 <p align="center"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue.svg" /> <img alt="Status" src="https://img.shields.io/badge/status-in%20development-orange" /> 
-<img alt="build" src="https://img.shields.io/github/actions/workflow/status/OliverKeefe/gestalto/go-tests.yml?branch=main">
-<img alt="build" src="https://img.shields.io/github/actions/workflow/status/OliverKeefe/gestalto/ts-tests.yml?branch=main">
+<img alt="backend" src="https://img.shields.io/github/actions/workflow/status/OliverKeefe/gestalto/go-tests.yml?branch=main&label=backend">
+<img alt="frontend" src="https://img.shields.io/github/actions/workflow/status/OliverKeefe/gestalto/ts-tests.yml?branch=main&label=frontend">
 </p>
 
 <h3>A Client-Side Encrypted, Decentralized File Storage & Compute Platform Built on IPFS (Interplanetary File System).</h3>
