@@ -62,10 +62,15 @@ cd frontend \
 npm run dev
 ```
 
-**Run test Auth Docker Container**
+**Run Keyclock (auth service) in test / dev container**
 ```shell
 docker run -p 127.0.0.1:8080:8080 \
   -e KC_BOOTSTRAP_ADMIN_USERNAME=$USERNAME \
   -e KC_BOOTSTRAP_ADMIN_PASSWORD=$PASS \
   quay.io/keycloak/keycloak:26.4.0 start-dev
+```
+
+**Run backend in dev mode**
+```shell
+cd backend/cmd/gestalto && go run main.go
 ```
