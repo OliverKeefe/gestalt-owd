@@ -1,6 +1,7 @@
 package files
 
 import (
+	"github.com/google/uuid"
 	"io/fs"
 	"time"
 )
@@ -11,9 +12,15 @@ type File struct {
 }
 
 type MetaData struct {
-	Filename     string
-	Size         uint64
-	Permissions  fs.FileMode
-	LastModified time.Time
-	IsDirectory  bool
+	FileName   string
+	Path       string
+	Size       uint64
+	Mode       fs.FileMode
+	IsDir      bool
+	ModifiedAt time.Time
+	CreatedAt  time.Time
+	Owner      uuid.UUID
+	AccessTo   []uuid.UUID
+	Group      []uuid.UUID
+	Links      *uint64
 }
