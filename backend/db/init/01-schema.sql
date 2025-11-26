@@ -49,3 +49,10 @@ CREATE TABLE file_metadata(
     created_at TIMESTAMP NOT NULL,
     owner UUID NOT NULL REFERENCES users(id)
 );
+
+-- FILE ACCESS
+CREATE TABLE file_metadata_access(
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    file_id UUID NOT NULL REFERENCES file_metadata(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, file_id)
+);
