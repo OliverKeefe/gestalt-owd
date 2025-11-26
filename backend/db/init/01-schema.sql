@@ -11,7 +11,6 @@ CREATE TABLE users (
 -- TENANTS
 CREATE TABLE tenant (
     id UUID PRIMARY KEY NOT NULL,
-    tenant_id UUID NOT NULL,
     name VARCHAR(64) NOT NULL
 );
 
@@ -21,10 +20,14 @@ CREATE TABLE groups (
     name VARCHAR(64) NOT NULL
 );
 
+-- BUCKETS
+CREATE TABLE bucket (
+    id UUID PRIMARY KEY NOT NULL,
+    tenant_id UUID NOT NULL REFERENCES tenant(id) ON DELETE CASCADE,
     name VARCHAR(64) NOT NULL,
     size BIGINT NOT NULL,
-    creator UUID NOT NULL,
-    owner UUID NOT NULL
+    creator UUID NOT NULL REFERENCES users(id),
+    owner UUID NOT NULL REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS bucket_groups (
