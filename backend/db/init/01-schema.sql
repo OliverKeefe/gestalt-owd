@@ -1,18 +1,15 @@
-type Bucket struct {
-	ID              uuid.UUID
-	TenantID        uuid.UUID
-	Name            string
-	Size            uint64
-	Creator         uuid.UUID
-	Owner           uuid.UUID
-	GroupMembership []uuid.UUID
-}
-
 \connect appdb;
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TABLE IF NOT EXISTS bucket (
+-- USERS
+CREATE TABLE users (
+    id UUID PRIMARY KEY NOT NULL,
+    name VARCHAR(64)
+);
+
+-- TENANTS
+CREATE TABLE tenant (
     id UUID PRIMARY KEY NOT NULL,
     tenant_id UUID NOT NULL,
     name VARCHAR(64) NOT NULL,
