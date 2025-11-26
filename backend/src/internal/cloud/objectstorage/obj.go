@@ -2,11 +2,7 @@ package objectstorage
 
 import (
 	model "backend/src/core/files/model"
-	"backend/src/internal/util"
-	"context"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/jackc/pgx"
 	"os"
 	"path/filepath"
 	"time"
@@ -24,60 +20,6 @@ type ObjectMetaData struct {
 	CreatedAt  time.Time
 	ModifiedAt time.Time
 	Metadata   map[string]string
-}
-
-/*
- - Store an obj with key (path / id) and metadata
-
- - Retrieve a blos data and metadata
-
- - Delete a obj
-
- - Check if a obj exists
-
- - List blobs
-
- - move or rename a obj
-
- - retrieve metadata without reading a full obj
-*/
-
-type Bucket struct {
-	ID              uuid.UUID
-	Name            string
-	Size            uint64
-	Creator         uuid.UUID
-	Owner           uuid.UUID
-	GroupMembership []uuid.UUID
-}
-
-// TODO: make params functional options pattern (options ... func(*Bucket)) *Bucket or config struct
-func (Bucket) NewObjectBucket(ctx context.Context, conn pgx.Conn, name string, size uint64,
-	creator uuid.UUID, owner uuid.UUID, groupMembership []uuid.UUID) (Bucket, error) {
-
-	var id uuid.UUID
-
-	for {
-		id = uuid.New()
-		unique, err := util.IsUUIDUnique(ctx, id, conn, "object_storage_buckets")
-		if err != nil {
-			return Bucket{}, err
-		}
-		if unique {
-			break
-		}
-	}
-
-	bucket := Bucket{
-		ID:              id,
-		Name:            name,
-		Size:            size,
-		Creator:         creator,
-		Owner:           owner,
-		GroupMembership: groupMembership,
-	}
-
-	return bucket, nil
 }
 
 var defaultStore *ObjectStore
