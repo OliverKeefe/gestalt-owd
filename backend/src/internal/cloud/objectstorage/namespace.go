@@ -59,7 +59,7 @@ func CreateNamespaceAndMount(mountPoint, nsBindPath string) error {
 		}
 		return nil
 	}
-
+	return nil
 	//type PID struct{}
 	//
 	//type Network struct{}
