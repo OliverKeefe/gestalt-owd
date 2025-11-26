@@ -12,6 +12,15 @@ CREATE TABLE users (
 CREATE TABLE tenant (
     id UUID PRIMARY KEY NOT NULL,
     tenant_id UUID NOT NULL,
+    name VARCHAR(64) NOT NULL
+);
+
+-- GROUPS
+CREATE TABLE groups (
+    id UUID PRIMARY KEY NOT NULL,
+    name VARCHAR(64) NOT NULL
+);
+
     name VARCHAR(64) NOT NULL,
     size BIGINT NOT NULL,
     creator UUID NOT NULL,
