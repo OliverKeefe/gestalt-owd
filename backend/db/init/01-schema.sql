@@ -30,9 +30,11 @@ CREATE TABLE bucket (
     owner UUID NOT NULL REFERENCES users(id)
 );
 
-CREATE TABLE IF NOT EXISTS bucket_groups (
-    bucket_id UUID NOT NULL,
-    group_id UUID NOT NULL
+-- BUCKET GROUP MEMBERSHIP
+CREATE TABLE bucket_groups (
+    bucket_id UUID NOT NULL REFERENCES bucket(id) ON DELETE CASCADE,
+    group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    PRIMARY KEY (bucket_id, group_id)
 );
 
 CREATE TABLE IF NOT EXISTS tenant (
