@@ -37,7 +37,15 @@ CREATE TABLE bucket_groups (
     PRIMARY KEY (bucket_id, group_id)
 );
 
-CREATE TABLE IF NOT EXISTS tenant (
+-- FILE METADATA
+CREATE TABLE file_metadata(
     id UUID PRIMARY KEY NOT NULL,
-    name VARCHAR(64) NOT NULL
+    file_name VARCHAR(255) NOT NULL,
+    path VARCHAR(255) NOT NULL,
+    size BIGINT NOT NULL,
+    mode BIGINT NOT NULL,
+    is_dir BOOLEAN NOT NULL,
+    modified_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    owner UUID NOT NULL REFERENCES users(id)
 );
