@@ -2,11 +2,11 @@ package files
 
 import (
 	model "backend/src/core/files/model"
-	"backend/src/internal/cloud/objectstorage"
+	obj "backend/src/internal/cloud/objectstorage/storage"
+
 	"backend/src/internal/middleware"
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"io"
 	"log"
 	"mime/multipart"
@@ -14,6 +14,8 @@ import (
 	"os"
 	"syscall"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type DefaultStore struct {
@@ -23,20 +25,31 @@ type DefaultStore struct {
 }
 
 type UploadFile struct {
-	file model.File
+	Repo    FileRepository
+	Storage *obj.Store
 }
 
-func (upload UploadFile) RegisterRoutes(mux *http.ServeMux) {
-	mux.Handle("/files/upload", middleware.EnableCORS(http.HandlerFunc(upload.Api)))
+func NewUploadFile(repo FileRepository, storage *obj.Store) {
+	return &UploadFile{
+		Repo:    repo,
+		Storage: storage,
+	}
 }
 
-func (upload UploadFile) Api(writer http.ResponseWriter, request *http.Request) {
+
+
+func (uc *UploadFile) RegisterRoutes(mux *http.ServeMux) {
+	mux.Handle("/files/upload",
+		middleware.EnableCORS(http.HandlerFunc(uc.Api)))
+}
+
+func (uc UploadFile) Api(writer http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodPut {
 		http.Error(writer, "unable to upload file", http.StatusMethodNotAllowed)
 		return
 	}
 
-	uploaded, err := upload.service(request)
+	uploaded, err := uc.upload(request)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 		log.Fatal(fmt.Errorf("unable to upload file, %e", err))
@@ -65,7 +78,7 @@ func (upload UploadFile) Api(writer http.ResponseWriter, request *http.Request) 
 	}
 }
 
-func (upload UploadFile) service(request *http.Request) (bool, error) {
+func (uc UploadFile) upload(request *http.Request) (bool, error) {
 	err := request.ParseMultipartForm(1500 << 1500)
 	if err != nil {
 		return false, fmt.Errorf("could not upload file %e", err)
@@ -95,13 +108,11 @@ func (upload UploadFile) service(request *http.Request) (bool, error) {
 		FileData: fileBytes,
 	}
 
-	var defaultStore = &objectstorage.ObjectStore{
-		BasePath:  "/home/oliver/Development/25-26_CE301_keefe_oliver_b",
-		Path:      "/backend/tempfiles",
-		NameSpace: "hello",
+	var defaultStore = &obj.Store{
+		RemotePath:
 	}
 
-	saveTo, err := objectstorage.Save(defaultStore, uploadedFile)
+	saveTo, err := storage.Save(defaultStore, uploadedFile)
 	if err != nil {
 		return false, fmt.Errorf("unable to save file in obj %e", err)
 	}
@@ -139,6 +150,6 @@ func extractMetadata(path string, owner uuid.UUID) (*model.MetaData, error) {
 	return meta, nil
 }
 
-func (upload UploadFile) repository() (bool, error) {
+func (uc UploadFile) repository() (bool, error) {
 	return true, nil
 }
