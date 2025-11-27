@@ -98,30 +98,30 @@ const data = {
   ],
   favorites: [
     {
-      name: "Project Management & Task Tracking",
+      name: "project_management_tracker.xlsx",
       url: "#",
-      emoji: "📊",
+      emoji: "📄",
     },
     {
-      name: "Family Recipe Collection & Meal Planning",
+      name: "CV.docx",
       url: "#",
-      emoji: "🍳",
+      emoji: "📄",
     },
     {
-      name: "Fitness Tracker & Workout Routines",
+      name: "Assignment 1 Essay.docx",
       url: "#",
-      emoji: "💪",
+      emoji: "📄",
     },
   ],
   workspaces: [
     {
       name: "House Move",
-      emoji: "🏠",
+      emoji: "📁",
       pages: [
         {
           name: "Daily Journal & Reflection.note",
           url: "#",
-          emoji: "📔",
+          emoji: "📁",
         },
         {
           name: "List_of_localPubs.docx",
@@ -137,7 +137,7 @@ const data = {
     },
     {
       name: "Professional",
-      emoji: "💼",
+      emoji: "📁",
       pages: [
         {
           name: "Career Objectives & Milestones",
@@ -158,7 +158,7 @@ const data = {
     },
     {
       name: "Creative Projects",
-      emoji: "🎨",
+      emoji: "📁",
       pages: [
         {
           name: "Writing Ideas & Story Outlines",
@@ -173,13 +173,13 @@ const data = {
         {
           name: "Music Composition & Practice Log",
           url: "#",
-          emoji: "🎵",
+          emoji: "📁",
         },
       ],
     },
     {
       name: "Home Management",
-      emoji: "🏡",
+      emoji: "📁",
       pages: [
         {
           name: "Household Budget & Expense Tracking.docx",
@@ -200,7 +200,7 @@ const data = {
     },
     {
       name: "Travel & Holidays",
-      emoji: "🧳",
+      emoji: "📁",
       pages: [
         {
           name: "Trip Planning & Itineraries",
