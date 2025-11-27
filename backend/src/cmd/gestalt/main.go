@@ -2,7 +2,7 @@ package main
 
 import (
 	files "backend/src/core/files/usecase"
-	"backend/src/internal/cloud/objectstorage"
+	"backend/src/internal/cloud/objectstorage/container"
 	"backend/src/internal/middleware"
 	"context"
 	"fmt"
