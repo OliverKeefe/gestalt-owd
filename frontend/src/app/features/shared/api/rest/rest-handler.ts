@@ -46,6 +46,11 @@ export class RestHandler {
         }
     }
 
+    /**
+     * Handles HTTP GET request.
+     * @param endpoint string of the api endpoint uri (e.g. `/files`).
+     * @return Promise<R> response - R being a generic representing the response type.
+     * */
     public async handleGet<R = unknown>(endpoint: string): Promise<R> {
         const userId = this.userId;
         const url = `${this.baseURL}/${endpoint}${userId}`;
