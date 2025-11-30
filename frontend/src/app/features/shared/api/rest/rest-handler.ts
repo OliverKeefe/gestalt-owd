@@ -1,7 +1,8 @@
-
-/*
+/**
 * Handles client-side REST requests and responses (POST, GET, PUT, CREATE, DELETE).
 * */
+import { useAuthStore } from "@/security/auth/authstore/auth-store.ts";
+
 export class RestHandler {
     private readonly baseURL: string;
 
@@ -22,7 +23,8 @@ export class RestHandler {
     }
 
     public async handleGet<R = unknown>(endpoint: string): Promise<R> {
-        const url = `${this.baseURL}/${endpoint}`;
+        const userId = this.userId;
+        const url = `${this.baseURL}/${endpoint}${userId}`;
         const options: RequestInit = { method: "GET" };
         const response = await fetch(url, options);
         await this.handleFailedRequest(response);
@@ -30,7 +32,8 @@ export class RestHandler {
     }
 
     public async handlePost<T, R = unknown>(endpoint: string, payload: T): Promise<R> {
-        const url = `${this.baseURL}/${endpoint}`;
+        const userId = this.userId;
+        const url = `${this.baseURL}/${endpoint}${userId}`;
         const options: RequestInit = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -42,23 +45,37 @@ export class RestHandler {
         return await response.json();
     }
 
-    public async handleDelete(endpoint: string): Promise<void> {
-        const url = `${this.baseURL}/${endpoint}`;
-        const options: RequestInit = { method: "DELETE" };
+    public async handleDelete<T, R = unknown>(endpoint: string, payload: T): Promise<R> {
+        const userId = this.userId;
+        const token = this.token;
+        const url = `${this.baseURL}/${endpoint}${userId}`;
+        const options: RequestInit = {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        };
+
         const response = await fetch(url, options);
         await this.handleFailedRequest(response);
+        return await response.json();
     }
 
     public async handleCreate<T, R = unknown>(endpoint: string, payload: T): Promise<R> {
-        const url = `${this.baseURL}/${endpoint}`;
+        const userId = this.userId;
+        const token = this.token;
+        const url = `${this.baseURL}/${endpoint}${userId}`;
         const options: RequestInit = {
             method: "CREATE",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         };
         const response = await fetch(url, options);
         await this.handleFailedRequest(response);
         return await response.json();
     }
-
 }
