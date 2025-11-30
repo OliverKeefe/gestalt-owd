@@ -34,6 +34,11 @@ interface FolderData {
   subFolder: string;
 }
 
+interface FavoritesData {
+  id: string;
+  name: string;
+  url: string;
+}
 
 const data = {
   teams: [
