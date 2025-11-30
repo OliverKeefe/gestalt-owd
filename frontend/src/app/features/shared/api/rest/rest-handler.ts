@@ -37,5 +37,9 @@ export class RestHandler {
             body: JSON.stringify(payload)
         };
 
+        const response = await fetch(url, options);
+        await this.handleFailedRequest(response);
+        return await response.json();
+    }
 
 }
