@@ -42,4 +42,12 @@ export class RestHandler {
         return await response.json();
     }
 
+    public async handleDelete(endpoint: string): Promise<void> {
+        const url = `${this.baseURL}/${endpoint}`;
+        const options: RequestInit = { method: "DELETE" };
+        const response = await fetch(url, options);
+        await this.handleFailedRequest(response);
+    }
+
+
 }
