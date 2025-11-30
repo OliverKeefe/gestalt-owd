@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { initKeycloak } from '@/security/auth/keycloak/keycloak.ts';
+import { useAuthStore } from "@/security/auth/authstore/auth-store.ts";
 
 const rootElement = document.getElementById("root")!;
 rootElement.innerHTML = `
@@ -23,6 +24,11 @@ async function auth() {
         console.log('User:', kc.tokenParsed?.preferred_username);
     }
 
+    if (kc?.tokenParsed) {
+        const userId = kc.tokenParsed.sub;
+        useAuthStore.getState().setUserId(userId);
+    }
+
     const isAuthenticated = !!kc;
 
     createRoot(document.getElementById('root')!).render(
@@ -30,6 +36,7 @@ async function auth() {
             <App isAuthenticated={isAuthenticated}/>
         </StrictMode>,
     );
+
 }
 
 auth();
