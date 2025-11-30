@@ -49,5 +49,16 @@ export class RestHandler {
         await this.handleFailedRequest(response);
     }
 
+    public async handleCreate<T, R = unknown>(endpoint: string, payload: T): Promise<R> {
+        const url = `${this.baseURL}/${endpoint}`;
+        const options: RequestInit = {
+            method: "CREATE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        };
+        const response = await fetch(url, options);
+        await this.handleFailedRequest(response);
+        return await response.json();
+    }
 
 }
