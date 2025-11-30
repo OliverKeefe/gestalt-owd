@@ -7,13 +7,37 @@ export class RestHandler {
     private readonly baseURL: string;
 
     /**
-     * Constructor.
+     * @constructor
      * @param baseURL The base URL for REST api calls to the Gestalto Control Plane Backend.
      * */
     constructor(baseURL: string) {
         this.baseURL = baseURL;
     }
 
+    /**
+     * Gets the user UUID from keycloak kc.token.sub in AuthStore.
+     * @return string | null of userId (uuid as string or null val).
+     * */
+    private get userId(): string | null {
+        const { userId } = useAuthStore.getState();
+        return userId;
+    }
+
+    /**
+     * Gets the JWT Token from keycloak kc.token in AuthStore.
+     *
+     * @return string | null of kc.token (as string or null val).
+     * */
+    private get token(): string | null {
+        const { token } = useAuthStore.getState();
+        return token;
+    }
+
+    /**
+     * Handles logic for failed HTTP request.
+     * @return Promise<void>
+     * @throws Error containing HTTP status and information backend allows frontned to see.
+     * */
     private async handleFailedRequest(response: Response): Promise<void> {
         if (!response.ok) {
             const errorText = await response.text();
