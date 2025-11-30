@@ -29,4 +29,13 @@ export class RestHandler {
         return await response.json();
     }
 
+    public async handlePost<T, R = unknown>(endpoint: string, payload: T): Promise<R> {
+        const url = `${this.baseURL}/${endpoint}`;
+        const options: RequestInit = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        };
+
+
 }
