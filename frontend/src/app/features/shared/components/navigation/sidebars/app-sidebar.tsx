@@ -26,6 +26,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar.tsx"
 import { UploadDialog } from "@/app/features/shared/components/dialog/upload-dialog.tsx";
+import {RestHandler} from "@/app/features/shared/api/rest/rest-handler.ts";
 
 interface FolderData {
   id: string;
@@ -233,6 +234,12 @@ const data = {
       ],
     },
   ],
+}
+
+const client: RestHandler = new RestHandler(`http://localhost:8081`);
+
+function GetFavorites(): Promise<FavoritesData[]> {
+  return client.handleGet<FavoritesData[]>(`files/favorites`)
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
