@@ -242,6 +242,10 @@ function GetFavorites(): Promise<FavoritesData[]> {
   return client.handleGet<FavoritesData[]>(`files/favorites`)
 }
 
+function GetFolders(): Promise<FolderData[]> {
+  return client.handleGet<FolderData[]>(`files/folders`);
+}
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar className="border-r-0" {...props}>
