@@ -40,6 +40,12 @@ interface FileData {
     access: string;
 }
 
+const client: RestHandler = new RestHandler(`http://localhost:8081`);
+
+function getFiles() {
+    return client.handleGet<FileData[]>(`files`)
+}
+
 export function FileTable() {
     const [selected, setSelected] = useState<number[]>([]);
 
