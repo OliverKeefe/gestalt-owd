@@ -13,4 +13,12 @@ export class RestHandler {
         this.baseURL = baseURL;
     }
 
+    private async handleFailedRequest(response: Response): Promise<void> {
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Request failed: ${response.status} ${response.statusText}`, errorText);
+            throw new Error(`Request failed with status ${response.status}`);
+        }
+    }
+
 }
