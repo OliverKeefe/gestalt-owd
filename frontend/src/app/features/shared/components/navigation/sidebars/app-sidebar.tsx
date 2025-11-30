@@ -27,6 +27,14 @@ import {
 } from "@/components/ui/sidebar.tsx"
 import { UploadDialog } from "@/app/features/shared/components/dialog/upload-dialog.tsx";
 
+interface FolderData {
+  id: string;
+  name: string;
+  url: string;
+  subFolder: string;
+}
+
+
 const data = {
   teams: [
     {
