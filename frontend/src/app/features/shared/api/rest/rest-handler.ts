@@ -21,4 +21,12 @@ export class RestHandler {
         }
     }
 
+    public async handleGet<R = unknown>(endpoint: string): Promise<R> {
+        const url = `${this.baseURL}/${endpoint}`;
+        const options: RequestInit = { method: "GET" };
+        const response = await fetch(url, options);
+        await this.handleFailedRequest(response);
+        return await response.json();
+    }
+
 }
