@@ -127,7 +127,15 @@
     }
 }
 
-.kcFormHeaderClass {
-    border: 3px solid red;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+.kcFormHeaderClass { @apply text-3xl font-bold text-center mb-6; }
+.kcFormGroupClass { @apply space-y-2; }
+.kcInputClass { @apply border rounded-md px-3 py-2 w-full; }
+.kcLabelClass { @apply text-sm font-medium text-gray-700; }
+.kcButtonClass { @apply bg-primary text-white rounded-md px-4 py-2 w-full hover:bg-primary/90; }
+.kcFormCardClass { @apply p-10 shadow-xl bg-white rounded-lg; }
+.kcFormHelpTextClass { @apply text-xs text-gray-500; }
+.kcAlertClass { @apply bg-red-100 text-red-800 p-3 rounded-md border border-red-200; }
