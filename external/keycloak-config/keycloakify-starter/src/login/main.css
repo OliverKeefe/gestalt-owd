@@ -8,6 +8,28 @@
 @import "tw-animate-css";
 @custom-variant dark (&:is(.dark *));
 
+
+
+
+/*UNCOMMENT TO REMOVE ALL PF STYLING.*/
+/*
+.pf-c-button,
+.pf-c-form-control,
+.pf-c-form,
+.pf-m-control,
+.card-pf,
+.pf-c-alert,
+.pf-c-label,
+.pf-c-form__label {
+    all: unset;
+    display: revert;
+    box-shadow: none;
+    border: none;
+}
+*/
+
+
+
 :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
@@ -131,11 +153,27 @@
 @tailwind components;
 @tailwind utilities;
 
-.kcFormHeaderClass { @apply text-3xl font-bold text-center mb-6; }
+.kcFormHeaderClass {
+    @apply
+    text-3xl
+    font-bold
+    text-center
+    mb-6;
+}
 
-.kcFormGroupClass { @apply space-y-2; }
+.kcFormGroupClass {
+    @apply
+    space-y-2;
+}
 
-.kcInputClass { @apply border rounded-md px-3 py-2 w-full; }
+.kcInputClass {
+    @apply
+    border
+    rounded-md
+    px-3
+    py-2
+    w-full;
+}
 
 .kcLabelClass { @apply text-sm font-medium text-gray-700; }
 
@@ -165,7 +203,7 @@
     placeholder:text-gray-400
     focus:outline-none focus:ring-2 focus:ring-gray-400
     disabled:cursor-not-allowed disabled:opacity-50
-    shadow-xs
+    shadow-xs;
 }
 
 .kcInputClass.pf-c-form-control {}
@@ -178,15 +216,115 @@
     ml-3
     border-b-0
     shadow-xs
-    rounded-md
+    rounded-md;
 }
+
+
+
+
+.kcInputClass {
+    @apply
+    h-10 w-full rounded-md
+    border border-input bg-background text-sm px-3
+    placeholder:text-muted-foreground
+    focus-visible:outline-none focus-visible:ring-2
+    focus-visible:ring-ring focus-visible:ring-offset-2
+    disabled:cursor-not-allowed disabled:opacity-50
+    shadow-none;
+}
+
+
+/**
+* Keycloak Button Class
+*/
+
+
+
+button,
+.pf-c-button,
+.pf-m-control,
+.btn,
+input[type="submit"] {
+    background: var(--primary) !important;
+    color: var(--primary-foreground) !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+
+
+.kcButtonClass {
+    @apply
+    inline-flex items-center justify-center
+    h-10 w-full rounded-md
+    bg-primary
+    text-primary-foreground
+    text-sm
+    font-medium
+    hover:bg-primary/90
+    focus-visible:outline-none focus-visible:ring-2
+    focus-visible:ring-ring focus-visible:ring-offset-2;
+}
+
+.kcButtonClass.kcSocialProviderBtnClass {
+    @apply
+    inline-flex items-center justify-center gap-2
+    h-10 w-full rounded-md
+    border border-input bg-background text-sm font-medium
+    hover:bg-accent hover:text-accent-foreground
+    focus-visible:outline-none focus-visible:ring-2
+    focus-visible:ring-ring focus-visible:ring-offset-2;
+}
+
+.fa,
+.fa-eye{
+    color: var(--primary-foreground);
+}
+
+.kcFormPasswordVisibilityButtonClass {
+    @apply
+    bg-secondary-foreground
+    accent-black
+}
+
+@layer components {
+
+    .kcFormPasswordVisibilityButtonClass {
+        @apply
+        cursor-pointer
+    }
+}
+
+.menu-button-links,
+.kcLocaleDropDownClass{
+    background: none !important;
+}
+
+.kcInfoAreaWrapperClass {
+    background-color: transparent;
+}
+
+body {
+    background: none !important;
+}
+
 
 .pf-c-button {
-    @apply
-    shadow-xs
-
+    @apply caret-amber-700;
+}
+.pf-m-control {
+    @apply caret-amber-700;
+}
+.pf-m-block {
+    @apply caret-amber-700;
+}
+.kc-social-item {
+    @apply caret-amber-700;
+}
+.kc-social-gray {
+    @apply caret-amber-700;
 }
 
-.pf-m-control {
-
+.kcFormSocialAccountListButtonClass {
+    @apply border-8 caret-orange-700;
 }
