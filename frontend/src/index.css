@@ -128,3 +128,11 @@
   backdrop-filter: blur(25px) saturate(200%);
   border: 1px solid oklch(0 0 0 / 10%);
 }
+
+.loading-spinner {
+  position: absolute;
+  align-self: center;
+  max-width: 200px;
+  max-height: 200px;
+  color: #1e1eef;
+}

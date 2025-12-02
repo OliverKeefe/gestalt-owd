@@ -2,6 +2,7 @@ package main
 
 import (
 	files "backend/src/core/files/usecase"
+	"backend/src/internal/cloud/objectstorage/container"
 	"backend/src/internal/middleware"
 	"context"
 	"fmt"
@@ -36,6 +37,18 @@ func main() {
 		Handler: mux,
 	}
 
+	err := objectstorage.CreateNamespaceAndMount("/tmp/bucket-test", "/tmp/ns-test")
+	if err != nil {
+		fmt.Errorf("error creating namespace and mount: %w", err)
+	}
+
+	link, err := os.Readlink("/proc/self/ns/mnt")
+	if err != nil {
+		fmt.Errorf("failed to read mount namespace link: %w", err)
+	}
+
+	fmt.Println("Current mount namespace:", link)
+
 	go func() {
 		fmt.Printf("starting backend on port %s\n", port)
 		log.Fatal(http.ListenAndServe(":8081", corsHandler))
@@ -62,6 +75,7 @@ func main() {
 	}
 
 	fmt.Println("Exiting...")
+
 }
 
 func initialModel() tea.Model {

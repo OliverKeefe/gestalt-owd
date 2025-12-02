@@ -9,10 +9,6 @@ export function Home() {
     return (
         <div className="flex flex-1 flex-col">
                     <Container>
-                        <h1 className="text-2xl font-semibold p-6 m-1">Folders</h1>
-                        <FileCardCarousel />
-                    </Container>
-                    <Container>
                         <h1 className="text-2xl font-semibold p-6 m-1">All files</h1>
                         <FileTable />
                     </Container>

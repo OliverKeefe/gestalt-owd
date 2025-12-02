@@ -26,6 +26,20 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar.tsx"
 import { UploadDialog } from "@/app/features/shared/components/dialog/upload-dialog.tsx";
+import {RestHandler} from "@/app/features/shared/api/rest/rest-handler.ts";
+
+interface FolderData {
+  id: string;
+  name: string;
+  url: string;
+  subFolder: string;
+}
+
+interface FavoritesData {
+  id: string;
+  name: string;
+  url: string;
+}
 
 const data = {
   teams: [
@@ -98,30 +112,30 @@ const data = {
   ],
   favorites: [
     {
-      name: "Project Management & Task Tracking",
+      name: "project_management_tracker.xlsx",
       url: "#",
-      emoji: "📊",
+      emoji: "📄",
     },
     {
-      name: "Family Recipe Collection & Meal Planning",
+      name: "CV.docx",
       url: "#",
-      emoji: "🍳",
+      emoji: "📄",
     },
     {
-      name: "Fitness Tracker & Workout Routines",
+      name: "Assignment 1 Essay.docx",
       url: "#",
-      emoji: "💪",
+      emoji: "📄",
     },
   ],
   workspaces: [
     {
       name: "House Move",
-      emoji: "🏠",
+      emoji: "📁",
       pages: [
         {
           name: "Daily Journal & Reflection.note",
           url: "#",
-          emoji: "📔",
+          emoji: "📁",
         },
         {
           name: "List_of_localPubs.docx",
@@ -137,7 +151,7 @@ const data = {
     },
     {
       name: "Professional",
-      emoji: "💼",
+      emoji: "📁",
       pages: [
         {
           name: "Career Objectives & Milestones",
@@ -158,7 +172,7 @@ const data = {
     },
     {
       name: "Creative Projects",
-      emoji: "🎨",
+      emoji: "📁",
       pages: [
         {
           name: "Writing Ideas & Story Outlines",
@@ -173,13 +187,13 @@ const data = {
         {
           name: "Music Composition & Practice Log",
           url: "#",
-          emoji: "🎵",
+          emoji: "📁",
         },
       ],
     },
     {
       name: "Home Management",
-      emoji: "🏡",
+      emoji: "📁",
       pages: [
         {
           name: "Household Budget & Expense Tracking.docx",
@@ -200,7 +214,7 @@ const data = {
     },
     {
       name: "Travel & Holidays",
-      emoji: "🧳",
+      emoji: "📁",
       pages: [
         {
           name: "Trip Planning & Itineraries",
@@ -220,6 +234,16 @@ const data = {
       ],
     },
   ],
+}
+
+const client: RestHandler = new RestHandler(`http://localhost:8081`);
+
+function GetFavorites(): Promise<FavoritesData[]> {
+  return client.handleGet<FavoritesData[]>(`files/favorites`)
+}
+
+function GetFolders(): Promise<FolderData[]> {
+  return client.handleGet<FolderData[]>(`files/folders`);
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RestHandler } from "@/app/features/shared/api/rest/rest-handler.ts";
 
 const data = {
     files: [
@@ -26,6 +27,23 @@ const data = {
             access: "Only You",
         },
     ]
+}
+
+interface FileData {
+    id: string;
+    name: string;
+    lastModified: string;
+    icon: string;
+    type: string;
+    size: string;
+    owner: string;
+    access: string;
+}
+
+const client: RestHandler = new RestHandler(`http://localhost:8081`);
+
+function getFiles() {
+    return client.handleGet<FileData[]>(`files`)
 }
 
 export function FileTable() {

@@ -2,7 +2,8 @@ package files
 
 import (
 	model "backend/src/core/files/model"
-	"backend/src/internal/cloud/objectstorage/obj"
+	obj "backend/src/internal/cloud/objectstorage/storage"
+
 	"backend/src/internal/middleware"
 	"encoding/json"
 	"fmt"
@@ -10,24 +11,45 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"os"
+	"syscall"
 	"time"
+
+	"github.com/google/uuid"
 )
 
+type DefaultStore struct {
+	BasePath  string
+	Path      string
+	NameSpace string
+}
+
 type UploadFile struct {
-	file model.File
+	Repo    FileRepository
+	Storage *obj.Store
 }
 
-func (upload UploadFile) RegisterRoutes(mux *http.ServeMux) {
-	mux.Handle("/files/upload", middleware.EnableCORS(http.HandlerFunc(upload.Api)))
+func NewUploadFile(repo FileRepository, storage *obj.Store) {
+	return &UploadFile{
+		Repo:    repo,
+		Storage: storage,
+	}
 }
 
-func (upload UploadFile) Api(writer http.ResponseWriter, request *http.Request) {
+
+
+func (uc *UploadFile) RegisterRoutes(mux *http.ServeMux) {
+	mux.Handle("/files/upload",
+		middleware.EnableCORS(http.HandlerFunc(uc.Api)))
+}
+
+func (uc UploadFile) Api(writer http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodPut {
 		http.Error(writer, "unable to upload file", http.StatusMethodNotAllowed)
 		return
 	}
 
-	uploaded, err := upload.Service(request)
+	uploaded, err := uc.upload(request)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 		log.Fatal(fmt.Errorf("unable to upload file, %e", err))
@@ -56,8 +78,8 @@ func (upload UploadFile) Api(writer http.ResponseWriter, request *http.Request) 
 	}
 }
 
-func (upload UploadFile) Service(request *http.Request) (bool, error) {
-	err := request.ParseMultipartForm(15000)
+func (uc UploadFile) upload(request *http.Request) (bool, error) {
+	err := request.ParseMultipartForm(1500 << 1500)
 	if err != nil {
 		return false, fmt.Errorf("could not upload file %e", err)
 	}
@@ -78,26 +100,19 @@ func (upload UploadFile) Service(request *http.Request) (bool, error) {
 		return false, fmt.Errorf("error reading file %e", err)
 	}
 
-	meta := model.MetaData{
-		Filename:     header.Filename,
-		Size:         uint64(len(fileBytes)),
-		Permissions:  0,
-		LastModified: time.Time{},
-		IsDirectory:  false,
-	}
+	var filepath = file.Name
+	metadata := extractMetadata()
 
 	uploadedFile := model.File{
-		Metadata: meta,
+		Metadata: metadata,
 		FileData: fileBytes,
 	}
 
-	var defaultStore = &objectstorage.ObjectStore{
-		BasePath:  "/home/oliver/Development/25-26_CE301_keefe_oliver_b",
-		Path:      "/backend/src/cmd/gestalt/",
-		NameSpace: "hello",
+	var defaultStore = &obj.Store{
+		RemotePath:
 	}
 
-	saveTo, err := objectstorage.Save(defaultStore, uploadedFile)
+	saveTo, err := storage.Save(defaultStore, uploadedFile)
 	if err != nil {
 		return false, fmt.Errorf("unable to save file in obj %e", err)
 	}
@@ -105,31 +120,36 @@ func (upload UploadFile) Service(request *http.Request) (bool, error) {
 	return saveTo, nil
 }
 
-func (upload UploadFile) Database() (bool, error) {
-	return true, nil
+func extractMetadata(path string, owner uuid.UUID) (*model.MetaData, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var createdAt time.Time
+	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+		createdAt = time.Unix(stat.Ctim.Sec, stat.Ctim.Nsec)
+	} else {
+		createdAt = info.ModTime()
+	}
+
+	meta := &model.MetaData{
+		FileName:   info.Name(),
+		Path:       path,
+		Size:       uint64(info.Size()),
+		Mode:       info.Mode(),
+		IsDir:      info.IsDir(),
+		ModifiedAt: info.ModTime(),
+		CreatedAt:  createdAt,
+		Owner:      uuid.New(),
+		AccessTo:   nil,
+		Group:      nil,
+		Links:      nil,
+	}
+
+	return meta, nil
 }
 
-func uploadHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPut {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// Parse up to 10MB in memory - this'll need to be increased to 15gb at somepoint.
-	err := r.ParseMultipartForm(10 << 20)
-	if err != nil {
-		http.Error(w, "Failed to parse multipart form: "+err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	file, header, err := r.FormFile("file")
-	if err != nil {
-		http.Error(w, "Failed to read file: "+err.Error(), http.StatusBadRequest)
-		return
-	}
-	defer file.Close()
-
-	fmt.Printf("Received file: %s\n", header.Filename)
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "File uploaded successfully!")
+func (uc UploadFile) repository() (bool, error) {
+	return true, nil
 }
