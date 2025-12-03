@@ -11,6 +11,25 @@ type MeterGaugeProps = React.PropsWithChildren<{
     children: React.ReactNode | undefined;
 }>;
 
+export function MeterGauge({ segmentData, total, children }: MeterGaugeProps) {
+    const processedSegments = segmentData.map(seg => ({
+        ...seg,
+        percentage: (seg.value / total) * 100,
+    }));
+
+    return (
+        <Background>
+            {processedSegments.map((seg, i) => (
+                <Segment
+                    key={i}
+                    label={seg.label}
+                    value={seg.value}
+                    color={seg.color}
+                />
+            ))}
+        </Background>
+    );
+}
 
 type BackgroundProps = React.PropsWithChildren<{
     children: React.ReactNode | undefined;
