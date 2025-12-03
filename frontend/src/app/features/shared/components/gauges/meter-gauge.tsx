@@ -4,3 +4,10 @@ export type MeterGaugeSegment = {
     color: string;
     percentage?: number;
 }
+
+type MeterGaugeProps = React.PropsWithChildren<{
+    segmentData: MeterGaugeSegment[];
+    total: number;
+    children: React.ReactNode | undefined;
+}>;
+
