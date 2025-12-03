@@ -11,3 +11,9 @@ type MeterGaugeProps = React.PropsWithChildren<{
     children: React.ReactNode | undefined;
 }>;
 
+function Background({ children }: BackgroundProps) {
+    return (
+        <div className={"rounded-b-full h[10px] w-full"}>{children}</div>
+    );
+}
+
