@@ -31,6 +31,16 @@ export function MeterGauge({ segmentData, total, children }: MeterGaugeProps) {
     );
 }
 
+function Segment( { label, value, color}: MeterGaugeSegment ) {
+    return (
+        <div
+            className={`rounded-b-full h[10px] ${color}`}>
+            title={label}
+            value={value}
+        </div>
+    );
+}
+
 type BackgroundProps = React.PropsWithChildren<{
     children: React.ReactNode | undefined;
 }>;
