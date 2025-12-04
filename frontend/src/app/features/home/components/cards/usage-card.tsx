@@ -1,4 +1,5 @@
 import {Card, CardContent, CardDescription, CardFooter, CardTitle} from '@/components/ui/card';
+import {MeterGauge, type MeterGaugeSegment} from "@/app/features/shared/components/gauges/meter-gauge.tsx";
 
 interface UsageData {
     availableStorage: number;
