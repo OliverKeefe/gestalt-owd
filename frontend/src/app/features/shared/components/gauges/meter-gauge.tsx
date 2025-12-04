@@ -15,19 +15,15 @@ export function MeterGauge({ segmentData, total, children }: MeterGaugeProps) {
     const processedSegments = segmentData.map(seg => ({
         ...seg,
         percentage: (seg.value / total) * 100,
-    }));
-
+    }))
     return (
-        <Background>
-            {processedSegments.map((seg, i) => (
-                <Segment
-                    key={i}
-                    label={seg.label}
-                    value={seg.value}
-                    color={seg.color}
-                />
-            ))}
-        </Background>
+        <div className={"relative w-full h-[14px] rounded-full bg-neutral-700 overflow-hidden"}>
+            <div className={"absolute inset-0 flex"}>
+                {processedSegments.map((seg, i) => (
+                    <Segment key={i} {...seg} />
+                ))}
+            </div>
+        </div>
     );
 }
 
