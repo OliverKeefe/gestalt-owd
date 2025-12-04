@@ -43,7 +43,7 @@ type BackgroundProps = React.PropsWithChildren<{
 
 function Background({ children }: BackgroundProps) {
     return (
-        <div className={"rounded-b-full h[10px] w-full"}>{children}</div>
+        <div className={"rounded-b-full h[5px] w-full"}>{children}</div>
     );
 }
 
