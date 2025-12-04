@@ -31,13 +31,13 @@ export function MeterGauge({ segmentData, total, children }: MeterGaugeProps) {
     );
 }
 
-function Segment( { label, value, color}: MeterGaugeSegment ) {
+function Segment({ label, color, percentage }: MeterGaugeSegment) {
     return (
         <div
-            className={`rounded-b-full h[10px] ${color}`}>
+            className={`mr-[2px] h-full ${color}`}
+            style={{ width: `${percentage}%` }}
             title={label}
-            value={value}
-        </div>
+        />
     );
 }
 
