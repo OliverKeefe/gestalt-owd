@@ -30,14 +30,13 @@ export default function Login(props: { kcContext: Extract<KcContext, { pageId: "
             <div className="w-full max-w-sm">
                 <Card>
                     <CardHeader>
-                        <CardTitle>{i18n.msg("loginTitle")}</CardTitle>
+                        <CardTitle>{i18n.msg("loginTitle", kcContext.realm.displayName ?? kcContext.realm.name)}</CardTitle>
                         <CardDescription>
-                            {i18n.msg("loginTitleHtml")}
+                            Sign in with your Gestalto account.
                         </CardDescription>
                     </CardHeader>
 
                     <CardContent>
-                        {/* 🔥 REAL KEYCLOAK LOGIN FORM */}
                         <form
                             id="kc-form-login"
                             action={url.loginAction}
@@ -56,19 +55,15 @@ export default function Login(props: { kcContext: Extract<KcContext, { pageId: "
                                         id="username"
                                         name="username"
                                         type="text"
-                                        defaultValue={
-                                            auth !== undefined ? auth.attemptedUsername : ""
-                                        }
+                                        defaultValue={auth?.attemptedUsername ?? ""}
                                         autoComplete="username"
                                         required
-                                        className={cn(
-                                            usernameError && "border-red-500"
-                                        )}
+                                        className={cn(usernameError && "border-red-500")}
                                     />
 
                                     {usernameError && (
                                         <FieldDescription className="text-red-600">
-                                            {messagesPerField.get("username", "password")?.map(({ message }) => message)}
+                                            {messagesPerField.get("username")}
                                         </FieldDescription>
                                     )}
                                 </Field>
@@ -96,24 +91,22 @@ export default function Login(props: { kcContext: Extract<KcContext, { pageId: "
                                         type="password"
                                         required
                                         autoComplete="current-password"
-                                        className={cn(
-                                            usernameError && "border-red-500"
-                                        )}
+                                        className={cn(usernameError && "border-red-500")}
                                     />
                                 </Field>
 
                                 {/* Remember me */}
                                 {realm.rememberMe && (
-                                    <Field className="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            id="rememberMe"
-                                            name="rememberMe"
-                                            defaultChecked={auth?.rememberMe}
-                                            className="size-4"
-                                        />
-                                        <label htmlFor="rememberMe" className="text-sm">
-                                            {i18n.msg("rememberMe")}
+                                    <Field>
+                                        <label htmlFor="rememberMe" className="flex items-center gap-x-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                id="rememberMe"
+                                                name="rememberMe"
+                                                defaultChecked={realm.rememberMe}
+                                                className="size-4"
+                                            />
+                                            <span className="text-sm">{i18n.msg("rememberMe")}</span>
                                         </label>
                                     </Field>
                                 )}
@@ -125,28 +118,26 @@ export default function Login(props: { kcContext: Extract<KcContext, { pageId: "
                                     </Button>
                                 </Field>
 
-                                {/* 🔥 Social providers */}
-                                {social?.providers?.length > 0 &&
-                                    social.providers.map(provider => (
-                                        <Field key={provider.providerId}>
-                                            <Button
-                                                variant="outline"
-                                                type="submit"
-                                                className="w-full"
-                                                name="credentialId"
-                                                value={provider.providerId}
-                                            >
-                                                {provider.displayName}
-                                            </Button>
-                                        </Field>
-                                    ))}
+                                {/* Social providers */}
+                                {social?.providers?.map(provider => (
+                                    <Field key={provider.providerId}>
+                                        <Button
+                                            variant="outline"
+                                            type="submit"
+                                            className="w-full"
+                                            name="credentialId"
+                                            value={provider.providerId}
+                                        >
+                                            {provider.displayName}
+                                        </Button>
+                                    </Field>
+                                ))}
 
-                                {/* Registration link */}
+                                {/* Registration */}
                                 {realm.registrationAllowed && (
                                     <Field>
                                         <FieldDescription className="text-center">
-                                            {i18n.msg("noAccount")}
-                                            {" "}
+                                            {i18n.msg("noAccount")}{" "}
                                             <a
                                                 href={url.registrationUrl}
                                                 className="underline underline-offset-4"
