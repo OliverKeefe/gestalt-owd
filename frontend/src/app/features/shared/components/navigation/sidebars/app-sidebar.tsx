@@ -91,7 +91,7 @@ const data = {
     },
     {
       title: "Settings",
-      url: "#",
+      url: "/settings",
       icon: Settings2,
     },
     {
@@ -129,8 +129,8 @@ const data = {
   ],
   workspaces: [
     {
-      name: "House Move",
-      emoji: "📁",
+      name: "CE303 Study Group",
+      emoji: "🧑‍🎓",
       pages: [
         {
           name: "Daily Journal & Reflection.note",
@@ -143,15 +143,15 @@ const data = {
           emoji: "📁",
         },
         {
-          name: "Contents Insurance Files",
+          name: "Contents Insurance FilesPage",
           url: "#",
           emoji: "📁",
         },
       ],
     },
     {
-      name: "Professional",
-      emoji: "📁",
+      name: "House Move",
+      emoji: "🏡",
       pages: [
         {
           name: "Career Objectives & Milestones",
@@ -252,7 +252,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
         <NavMain items={data.navMain} />
-          <UploadDialog />
+
       </SidebarHeader>
       <SidebarContent>
         <NavFavorites favorites={data.favorites} />

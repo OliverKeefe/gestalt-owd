@@ -59,7 +59,7 @@ export function UploadDialog({children}: UploadDialogProps) {
     return (
         <Dialog open={open} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start flex items-center space-x-2">
+                <Button variant="default" className="justify-start flex items-center space-x-2">
                     <Upload />
                     <p>Upload</p>
                 </Button>
@@ -68,7 +68,6 @@ export function UploadDialog({children}: UploadDialogProps) {
             <DialogContent className="max-w-3xl">
                 <DialogHeader>
                     <div className="flex items-center space-x-2">
-
                         <DialogTitle> Upload File</DialogTitle>
                     </div>
                     <DialogDescription>Upload a file or folder.</DialogDescription>
