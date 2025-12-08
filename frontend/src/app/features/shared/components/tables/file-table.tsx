@@ -3,6 +3,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RestHandler } from "@/app/features/shared/api/rest/rest-handler.ts";
+import {UploadDialog} from "@/app/features/shared/components/dialog/upload-dialog.tsx";
+import {Button} from "@/components/ui/button.tsx";
+import {Clock, FolderPlus, Star} from "lucide-react";
 
 const data = {
     files: [
@@ -23,6 +26,16 @@ const data = {
             icon: "📄",
             type: ".DOCX",
             size: "7.9 MB",
+            owner: "Steve Smith",
+            access: "Only You",
+        },
+        {
+            id: 3,
+            name: "Place",
+            lastModified: "10-01-25",
+            icon: "📄",
+            type: "Folder",
+            size: "73.9 MB",
             owner: "Steve Smith",
             access: "Only You",
         },
@@ -56,43 +69,58 @@ export function FileTable() {
     };
 
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead className="w-[30px]">
-                        <Checkbox
-                            checked={selected.length === data.files.length}
-                            onCheckedChange={(checked) => {
-                                if (checked) {
-                                    setSelected(data.files.map((file) => file.id));
-                                } else {
-                                    setSelected([]);
-                                }
-                            }}
-                        />
-                    </TableHead>
-                    <TableHead className="w-[100px]">Last Modified</TableHead>
-                    <TableHead>Access</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead className="text-right">Type</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {data.files.map((file) => (
-                    <TableRow key={file.id}>
-                        <TableCell>
+        <div>
+            <h1 className="text-2xl font-semibold pb-4 pt-4 m-1">All files</h1>
+            <nav className={"w-full flex gap-3"}>
+                <Button variant="default" title="Recents">
+                    <Clock /> Recents
+                </Button>
+                <UploadDialog />
+                <Button variant="default" title="NewFolder">
+                    <FolderPlus /> New Folder
+                </Button>
+                <Button variant="default" title="Favorite">
+                    <Star /> Favorites
+                </Button>
+            </nav>
+            <Table className={"mt-2"}>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead className="w-[30px]">
                             <Checkbox
-                                checked={selected.includes(file.id)}
-                                onCheckedChange={() => toggleSelect(file.id)}
+                                checked={selected.length === data.files.length}
+                                onCheckedChange={(checked) => {
+                                    if (checked) {
+                                        setSelected(data.files.map((file) => file.id));
+                                    } else {
+                                        setSelected([]);
+                                    }
+                                }}
                             />
-                        </TableCell>
-                        <TableCell className="font-medium">{file.lastModified}</TableCell>
-                        <TableCell>{file.access}</TableCell>
-                        <TableCell>{file.icon} {file.name}</TableCell>
-                        <TableCell className="text-right">{file.type}</TableCell>
+                        </TableHead>
+                        <TableHead className="w-[100px]">Last Modified</TableHead>
+                        <TableHead>Access</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead className="text-right">Type</TableHead>
                     </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+                </TableHeader>
+                <TableBody>
+                    {data.files.map((file) => (
+                        <TableRow key={file.id}>
+                            <TableCell>
+                                <Checkbox
+                                    checked={selected.includes(file.id)}
+                                    onCheckedChange={() => toggleSelect(file.id)}
+                                />
+                            </TableCell>
+                            <TableCell className="font-medium">{file.lastModified}</TableCell>
+                            <TableCell>{file.access}</TableCell>
+                            <TableCell>{file.icon} {file.name}</TableCell>
+                            <TableCell className="text-right">{file.type}</TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </div>
     );
 }
