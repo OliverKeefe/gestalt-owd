@@ -32,7 +32,7 @@ export function NavWorkspaces({
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Folders</SidebarGroupLabel>
+      <SidebarGroupLabel>Teams</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
           {workspaces.map((workspace) => (
