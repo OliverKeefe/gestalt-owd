@@ -15,3 +15,9 @@ func NewConfig(opts ...Option) Config {
 	}
 	return cfg
 }
+
+func WithBaseURL(baseUrl string) Option {
+	return func(c *Config) {
+		c.BaseURL = baseUrl
+	}
+}
