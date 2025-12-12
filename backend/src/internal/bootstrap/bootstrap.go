@@ -5,3 +5,13 @@ type Config struct {
 }
 
 type Option func(*Config)
+
+func NewConfig(opts ...Option) Config {
+	cfg := Config{
+		BaseURL: "",
+	}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	return cfg
+}
