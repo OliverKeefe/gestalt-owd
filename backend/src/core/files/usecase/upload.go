@@ -82,43 +82,24 @@ func parseUploadRequest(r *http.Request) (UploadRequest, error) {
 	return req, nil
 }
 
-func (uc UploadFile) upload(request *http.Request) (bool, error) {
-	err := request.ParseMultipartForm(1500 << 1500)
+func (uc *UploadFile) Api(w http.ResponseWriter, r *http.Request) {
+	req, err := parseUploadRequest(r)
 	if err != nil {
-		return false, fmt.Errorf("could not upload file %e", err)
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
 	}
 
-	file, header, err := request.FormFile("file")
-	if err != nil {
-		return false, fmt.Errorf("error getting file from request %e", err)
-	}
-	defer func(file multipart.File) {
-		err := file.Close()
-		if err != nil {
-			fmt.Errorf("unable to close file %e", err)
-		}
-	}(file)
-
-	fileBytes, err := io.ReadAll(file)
-	if err != nil {
-		return false, fmt.Errorf("error reading file %e", err)
-	}
-
-	var filepath = file.Name
-	metadata := extractMetadata()
-
-	uploadedFile := model.File{
-		Metadata: metadata,
-		FileData: fileBytes,
-	}
-
-	var defaultStore = &obj.Store{
-		RemotePath:
+	if err := uc.upload(r.Context(), req); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	saveTo, err := storage.Save(defaultStore, uploadedFile)
 	if err != nil {
 		return false, fmt.Errorf("unable to save file in obj %e", err)
+	w.WriteHeader(http.StatusAccepted)
+}
+
 	}
 
 	return saveTo, nil
