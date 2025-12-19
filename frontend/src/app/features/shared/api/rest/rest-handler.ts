@@ -74,6 +74,19 @@ export class RestHandler {
         return await response.json();
     }
 
+    public async handleUpload<B extends BodyInit | null | undefined, R = unknown>(endpoint: string, formPayload: B): Promise<R> {
+        const userId = this.userId;
+        const url = `${this.baseURL}/${endpoint}${userId}`;
+        const options: RequestInit = {
+            method: "POST",
+            body: formPayload
+        };
+
+        const response = await fetch(url, options);
+        await this.handleFailedRequest(response);
+        return await response.json();
+    }
+
     public async handleDelete<T, R = unknown>(endpoint: string, payload: T): Promise<R> {
         const userId = this.userId;
         const token = this.token;

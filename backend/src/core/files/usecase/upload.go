@@ -3,153 +3,93 @@ package files
 import (
 	model "backend/src/core/files/model"
 	obj "backend/src/internal/cloud/objectstorage/storage"
-
 	"backend/src/internal/middleware"
+	"context"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
-	"log"
-	"mime/multipart"
 	"net/http"
-	"os"
-	"syscall"
-	"time"
-
-	"github.com/google/uuid"
 )
 
-type DefaultStore struct {
-	BasePath  string
-	Path      string
-	NameSpace string
-}
-
 type UploadFile struct {
-	Repo    FileRepository
+	model   model.FileModel
 	Storage *obj.Store
 }
-
-func NewUploadFile(repo FileRepository, storage *obj.Store) {
-	return &UploadFile{
-		Repo:    repo,
-		Storage: storage,
-	}
-}
-
-
 
 func (uc *UploadFile) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("/files/upload",
 		middleware.EnableCORS(http.HandlerFunc(uc.Api)))
 }
 
-func (uc UploadFile) Api(writer http.ResponseWriter, request *http.Request) {
-	if request.Method != http.MethodPut {
-		http.Error(writer, "unable to upload file", http.StatusMethodNotAllowed)
-		return
-	}
-
-	uploaded, err := uc.upload(request)
-	if err != nil {
-		http.Error(writer, err.Error(), http.StatusBadRequest)
-		log.Fatal(fmt.Errorf("unable to upload file, %e", err))
-		return
-	}
-
-	writer.Header().Set("Content-Type", "application/json")
-	if uploaded == true {
-		writer.WriteHeader(http.StatusAccepted)
-		err := json.NewEncoder(writer).Encode("File successfully uploaded")
-		if err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
-			log.Fatal(fmt.Errorf("file uploaded but could not send response, %e", err))
-			return
-		}
-		return
-	} else {
-		writer.WriteHeader(http.StatusAccepted)
-		err := json.NewEncoder(writer).Encode("File could not be uploaded.")
-		if err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
-			log.Fatal(fmt.Errorf("file not uploaded and could not send response, %e", err))
-			return
-		}
-		return
-	}
+type UploadRequest struct {
+	Metadata []model.MetaData
+	Files    []model.FileData
 }
 
-func (uc UploadFile) upload(request *http.Request) (bool, error) {
-	err := request.ParseMultipartForm(1500 << 1500)
+func parseUploadRequest(r *http.Request) (UploadRequest, error) {
+	var req UploadRequest
+	mr, err := r.MultipartReader()
 	if err != nil {
-		return false, fmt.Errorf("could not upload file %e", err)
+		return req, err
 	}
 
-	file, header, err := request.FormFile("file")
-	if err != nil {
-		return false, fmt.Errorf("error getting file from request %e", err)
-	}
-	defer func(file multipart.File) {
-		err := file.Close()
-		if err != nil {
-			fmt.Errorf("unable to close file %e", err)
+	for {
+		part, err := mr.NextPart()
+		if err == io.EOF {
+			break
 		}
-	}(file)
+		if err != nil {
+			return req, err
+		}
 
-	fileBytes, err := io.ReadAll(file)
-	if err != nil {
-		return false, fmt.Errorf("error reading file %e", err)
+		switch part.FormName() {
+		case "metadata":
+			if err := json.NewDecoder(part).Decode(&req.Metadata); err != nil {
+				return req, err
+			}
+
+		case "files":
+			if part.FileName() == "" {
+				continue
+			}
+
+			req.Files = append(req.Files, model.FileData{
+				Filename: part.FileName(),
+				Reader:   part,
+			})
+		}
 	}
 
-	var filepath = file.Name
-	metadata := extractMetadata()
-
-	uploadedFile := model.File{
-		Metadata: metadata,
-		FileData: fileBytes,
+	if len(req.Files) == 0 {
+		return req, errors.New("no files uploaded")
 	}
 
-	var defaultStore = &obj.Store{
-		RemotePath:
-	}
-
-	saveTo, err := storage.Save(defaultStore, uploadedFile)
-	if err != nil {
-		return false, fmt.Errorf("unable to save file in obj %e", err)
-	}
-
-	return saveTo, nil
+	return req, nil
 }
 
-func extractMetadata(path string, owner uuid.UUID) (*model.MetaData, error) {
-	info, err := os.Stat(path)
+func (uc *UploadFile) Api(w http.ResponseWriter, r *http.Request) {
+	req, err := parseUploadRequest(r)
 	if err != nil {
-		return nil, err
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
 	}
 
-	var createdAt time.Time
-	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
-		createdAt = time.Unix(stat.Ctim.Sec, stat.Ctim.Nsec)
-	} else {
-		createdAt = info.ModTime()
+	if err := uc.upload(r.Context(), req); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	meta := &model.MetaData{
-		FileName:   info.Name(),
-		Path:       path,
-		Size:       uint64(info.Size()),
-		Mode:       info.Mode(),
-		IsDir:      info.IsDir(),
-		ModifiedAt: info.ModTime(),
-		CreatedAt:  createdAt,
-		Owner:      uuid.New(),
-		AccessTo:   nil,
-		Group:      nil,
-		Links:      nil,
-	}
-
-	return meta, nil
+	w.WriteHeader(http.StatusAccepted)
 }
 
-func (uc UploadFile) repository() (bool, error) {
-	return true, nil
+func (uc *UploadFile) upload(ctx context.Context, req UploadRequest) error {
+	for _, file := range req.Files {
+		for _, metadata := range req.Metadata {
+			err := uc.model.Save(ctx, file, metadata)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

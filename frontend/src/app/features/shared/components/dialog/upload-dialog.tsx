@@ -59,21 +59,19 @@ export function UploadDialog({children}: UploadDialogProps) {
     return (
         <Dialog open={open} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-                <Button variant="default" className="justify-start flex items-center space-x-2">
-                    <Upload />
-                    <p>Upload</p>
+                <Button variant="default">
+                    <Upload /> Upload
                 </Button>
             </DialogTrigger>
 
             <DialogContent className="max-w-3xl">
                 <DialogHeader>
-                    <div className="flex items-center space-x-2">
-                        <DialogTitle> Upload File</DialogTitle>
-                    </div>
+                    <DialogTitle>Upload File</DialogTitle>
                     <DialogDescription>Upload a file or folder.</DialogDescription>
                 </DialogHeader>
+
                 <Dropzone
-                    accept={{ 'file/*': [] }}
+                    accept={{ "*/*": [] }}
                     maxFiles={10}
                     maxSize={1024 * 1024 * 1024 * 15}
                     minSize={1024}
@@ -85,11 +83,11 @@ export function UploadDialog({children}: UploadDialogProps) {
                     <DropzoneContent />
                 </Dropzone>
 
-                    <div className="flex flex-col space-y-2" >
-                        <Button
-                            className="cursor-pointer"
-                            onClick={handleUpload}>Upload</Button>
-                    </div>
+                <div className="flex flex-col space-y-2 mt-3">
+                    <Button className="cursor-pointer" onClick={handleDialogUpload}>
+                        Upload
+                    </Button>
+                </div>
             </DialogContent>
         </Dialog>
     );
