@@ -8,7 +8,12 @@ import (
 
 type File struct {
 	Metadata MetaData
-	FileData []byte
+	FileData FileData
+}
+
+type FileData struct {
+	Filename string
+	Reader   io.Reader
 }
 
 type MetaData struct {
