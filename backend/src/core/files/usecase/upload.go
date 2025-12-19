@@ -3,19 +3,12 @@ package files
 import (
 	model "backend/src/core/files/model"
 	obj "backend/src/internal/cloud/objectstorage/storage"
-
 	"backend/src/internal/middleware"
+	"context"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
-	"log"
-	"mime/multipart"
 	"net/http"
-	"os"
-	"syscall"
-	"time"
-
-	"github.com/google/uuid"
 )
 
 type DefaultStore struct {
@@ -25,7 +18,7 @@ type DefaultStore struct {
 }
 
 type UploadFile struct {
-	Repo    FileRepository
+	model   model.FileModel
 	Storage *obj.Store
 }
 
@@ -43,39 +36,50 @@ func (uc *UploadFile) RegisterRoutes(mux *http.ServeMux) {
 		middleware.EnableCORS(http.HandlerFunc(uc.Api)))
 }
 
-func (uc UploadFile) Api(writer http.ResponseWriter, request *http.Request) {
-	if request.Method != http.MethodPut {
-		http.Error(writer, "unable to upload file", http.StatusMethodNotAllowed)
-		return
-	}
+type UploadRequest struct {
+	Metadata []model.MetaData
+	Files    []model.FileData
+}
 
-	uploaded, err := uc.upload(request)
+func parseUploadRequest(r *http.Request) (UploadRequest, error) {
+	var req UploadRequest
+	mr, err := r.MultipartReader()
 	if err != nil {
-		http.Error(writer, err.Error(), http.StatusBadRequest)
-		log.Fatal(fmt.Errorf("unable to upload file, %e", err))
-		return
+		return req, err
 	}
 
-	writer.Header().Set("Content-Type", "application/json")
-	if uploaded == true {
-		writer.WriteHeader(http.StatusAccepted)
-		err := json.NewEncoder(writer).Encode("File successfully uploaded")
-		if err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
-			log.Fatal(fmt.Errorf("file uploaded but could not send response, %e", err))
-			return
+	for {
+		part, err := mr.NextPart()
+		if err == io.EOF {
+			break
 		}
-		return
-	} else {
-		writer.WriteHeader(http.StatusAccepted)
-		err := json.NewEncoder(writer).Encode("File could not be uploaded.")
 		if err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
-			log.Fatal(fmt.Errorf("file not uploaded and could not send response, %e", err))
-			return
+			return req, err
 		}
-		return
+
+		switch part.FormName() {
+		case "metadata":
+			if err := json.NewDecoder(part).Decode(&req.Metadata); err != nil {
+				return req, err
+			}
+
+		case "files":
+			if part.FileName() == "" {
+				continue
+			}
+
+			req.Files = append(req.Files, model.FileData{
+				Filename: part.FileName(),
+				Reader:   part,
+			})
+		}
 	}
+
+	if len(req.Files) == 0 {
+		return req, errors.New("no files uploaded")
+	}
+
+	return req, nil
 }
 
 func (uc UploadFile) upload(request *http.Request) (bool, error) {
