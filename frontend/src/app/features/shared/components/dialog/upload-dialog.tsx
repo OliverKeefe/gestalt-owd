@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, { useState } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -6,29 +6,25 @@ import {
     DialogTrigger,
     DialogHeader,
     DialogDescription
-} from "@/components/ui/dialog"
-import {Button} from "@/components/ui/button.tsx";
-import {Dropzone, DropzoneContent, DropzoneEmptyState} from "@/components/ui/shadcn-io/dropzone";
-import {Upload} from "lucide-react";
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button.tsx";
+import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@/components/ui/shadcn-io/dropzone";
+import { Upload } from "lucide-react";
+import { RestHandler } from "@/app/features/shared/api/rest/rest-handler.ts";
+import {UploadForm} from "@/app/features/shared/files/upload.ts";
 
 type UploadDialogProps = {
-    children?: React.ReactNode
-}
+    onUploaded?: (file: any) => void;
+};
+
+const api = new RestHandler(`http://localhost:8081`);
 
 
-export function UploadDialog({children}: UploadDialogProps) {
+export function UploadDialog() {
     const [open, setDialogOpen] = useState(false);
     const [files, setFiles] = useState<File[] | null>(null);
-    const handleDrop = (files: File[]) => {
-        console.log(files);
-        setFiles(files);
-    };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files?.length) {
-            setFiles(Array.from(e.target.files));
-        }
-    }
+    const handleDrop = (files: File[]) => setFiles(files);
 
     async function handleDialogUpload(): Promise<void> {
         if (!files || files.length === 0) {
@@ -36,28 +32,20 @@ export function UploadDialog({children}: UploadDialogProps) {
             return;
         }
 
-        const formData = new FormData();
-        files.forEach((file) => {
-            formData.append("file", file);
-        })
-
-
         try {
-            const response = await fetch("http://127.0.0.1:8081/files/upload", {
-                method: "PUT",
-                body: formData,
-            });
+            const upload = new UploadForm(files);
+            await upload.prepare();
 
-            if (!response.ok) {
-                throw new Error(`Upload failed with status ${response.status}`);
-            }
+            console.log("Sending upload form data...")
+            const response = await upload.send();
+            console.log(response)
 
             setDialogOpen(false);
             setFiles(null);
         } catch (err) {
-            throw new Error("failed to upload file.", err);
+            console.log(err);
         }
-    };
+    }
 
     return (
         <Dialog open={open}
