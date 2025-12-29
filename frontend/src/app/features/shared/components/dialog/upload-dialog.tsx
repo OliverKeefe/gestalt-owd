@@ -30,9 +30,10 @@ export function UploadDialog({children}: UploadDialogProps) {
         }
     }
 
-    async function handleUpload(): Promise<void> {
-        if (!files) {
-            return alert("Can't upload an empty file.")
+    async function handleDialogUpload(): Promise<void> {
+        if (!files || files.length === 0) {
+            alert("Can't upload an empty file.");
+            return;
         }
 
         const formData = new FormData();
@@ -51,13 +52,19 @@ export function UploadDialog({children}: UploadDialogProps) {
                 throw new Error(`Upload failed with status ${response.status}`);
             }
 
+            setDialogOpen(false);
+            setFiles(null);
         } catch (err) {
             throw new Error("failed to upload file.", err);
         }
     };
 
     return (
-        <Dialog open={open} onOpenChange={setDialogOpen}>
+        <Dialog open={open}
+                onOpenChange={(isOpen) => {
+                    setDialogOpen(isOpen)
+                    if (!isOpen) setFiles(null)
+                }}>
             <DialogTrigger asChild>
                 <Button variant="default">
                     <Upload /> Upload
