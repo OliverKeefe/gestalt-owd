@@ -1,20 +1,27 @@
 import MediaInfo from "mediainfo.js";
 
-let mediaInfoPromise: Promise<any> | null = null;
 
 /**
-* getMediaInfo initializes MediaInfo.js module
-* locateFile gets the MediaInfo precompiled wasm binary from public/mediainfo.
-* @returns mediaInfoPromise - Promise containing MediaInfo format and binary path.
-* */
-function getMediaInfo() {
-    if (!mediaInfoPromise) {
-        mediaInfoPromise = MediaInfo({
-            format: "JSON",
-            locateFile: (file) => `/mediainfo/${file}`,
-        });
-    }
-    return mediaInfoPromise;
+ * Metadata interface maps extracted metadata to object.
+ * Fields `path`, `relativePath`, `lastModified`, `lastModifiedDate`
+ * `size` and `fileType` are set using MediaInfo.js metadata
+ * extraction. The rest, `id`, `ownerId` and `checkSum` are
+ * injected once extraction is complete. `id` serves as a key to
+ * associate each metadata object with its respective ByteData.
+ * */
+export type Metadata = ExtractedMetadata& {
+    id: string
+    ownerId: string
+    checkSum: string
+}
+
+type ExtractedMetadata = {
+    path: string
+    relativePath: string
+    lastModified: number
+    lastModifiedDate: string
+    size: number
+    fileType: string
 }
 
 /**
@@ -30,13 +37,32 @@ function getMediaInfo() {
  * @param file - a File, uploaded via UploadDialog's Dropzone component.
  * @returns result - extracted metadata parsed to JSON.
  * */
-export async function extractMetadata(file: File) {
-    console.log("extractMetadata called", file);
-    const mediaInfo = await getMediaInfo();
-     const getSize = () => file.size;
+export async function extractMetadata(file: File): Promise<Metadata> {
+    const mediaInfo = await MediaInfo({
+        format: "JSON",
+        locateFile: (path) => `/mediainfo/dist/${path}`,
+    })
 
-     const readChunk = (chunkSize: number, offset: number) =>
-         file.slice(offset, offset + chunkSize).arrayBuffer();
-     const result = await mediaInfo.analyzeData(getSize, readChunk);
-     return JSON.parse(result);
+    const result = await mediaInfo.analyzeData(
+        () => file.size,
+        async (chunkSize, offset) => {
+            const buffer = await file.slice(offset, offset + chunkSize).arrayBuffer()
+            return new Uint8Array(buffer)
+        }
+    )
+
+    mediaInfo.close()
+
+    if (!result) {
+        throw new Error("MediaInfo returned void")
+    }
+
+    const extracted = JSON.parse(result) as ExtractedMetadata
+
+    return {
+        ...extracted,
+        id: crypto.randomUUID(),
+        ownerId: crypto.randomUUID(),
+        checkSum: "a".repeat(256),
+    }
 }
