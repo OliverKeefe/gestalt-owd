@@ -45,7 +45,7 @@ export class UploadForm {
 
     public async send(): Promise<Response> {
         this.buildFormData();
-        const url = "http://localhost:8081/api/upload"
+        const url = "http://localhost:8081/api/files/upload"
 
         //const url = `${this.baseURL}/${endpoint}`;
         const options: RequestInit = {method: "POST", body: this.formData};
