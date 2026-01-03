@@ -1,0 +1,34 @@
+package metadb
+
+import (
+	"context"
+	"fmt"
+	"os"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+type MetadataDatabase struct {
+	Pool *pgxpool.Pool
+}
+
+func New(ctx context.Context, envVar string) (*MetadataDatabase, error) {
+	dsn := os.Getenv(envVar)
+	if dsn == "" {
+		return nil, fmt.Errorf("environment variable %s is not set", envVar)
+	}
+
+	pool, err := pgxpool.New(ctx, dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := pool.Ping(ctx); err != nil {
+		pool.Close()
+		return nil, err
+	}
+
+	return &MetadataDatabase{
+		Pool: pool,
+	}, nil
+}
