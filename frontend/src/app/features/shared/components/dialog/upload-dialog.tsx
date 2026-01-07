@@ -24,7 +24,16 @@ export function UploadDialog() {
     const [open, setDialogOpen] = useState(false);
     const [files, setFiles] = useState<File[] | null>(null);
 
-    const handleDrop = (files: File[]) => setFiles(files);
+    const handleDrop = (newFiles: File[]) => {
+        setFiles(prev => {
+            const existing = prev ?? [];
+            const merged = [...existing, ...newFiles];
+
+            return Array.from(
+                new Map(merged.map(f => [`${f.name}-${f.size}-${f.lastModified}`, f])).values()
+            );
+        });
+    };
 
     async function handleDialogUpload(): Promise<void> {
         if (!files || files.length === 0) {
