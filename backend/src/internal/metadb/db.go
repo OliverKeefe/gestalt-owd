@@ -13,6 +13,8 @@ type MetadataDatabase struct {
 }
 
 func New(ctx context.Context, envVar string) (*MetadataDatabase, error) {
+	log.Printf("DATABASE_URL=%s", os.Getenv("DATABASE_URL"))
+
 	dsn := os.Getenv(envVar)
 	if dsn == "" {
 		return nil, fmt.Errorf("environment variable %s is not set", envVar)
