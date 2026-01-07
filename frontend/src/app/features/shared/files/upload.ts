@@ -31,8 +31,8 @@ export class UploadForm {
     private buildFormData() {
         Object.values(this.payload).forEach(({ metadata, file }) => {
             this.formData.append(
-                "metadata",
-                new Blob([JSON.stringify(metadata)], { type: "application/html" })
+                `metadata-${metadata.id}`,
+                JSON.stringify(metadata)
             )
 
             this.formData.append(
