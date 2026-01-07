@@ -6,14 +6,37 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type UploadSvc struct {
 	repo *repository.FileRepository
 }
 
+// MetaDataDTO is a Data Transfer Object for file Metadata.
+// When the frontend sends a multipart form, metadata is stored
+// as raw json,
+type MetaDataDTO struct {
+	Path             string `json:"path"`
+	RelativePath     string `json:"relativePath"`
+	LastModified     int64  `json:"lastModified"`
+	LastModifiedDate string `json:"lastModifiedDate"`
+	Size             uint64 `json:"size"`
+	FileType         string `json:"fileType"`
+
+	ID       string `json:"id"`
+	OwnerID  string `json:"ownerId"`
+	CheckSum string `json:"checkSum"`
+}
+
+// NewUploadService constructor for new UploadSvc (UploadService).
 func NewUploadService(fileRepo *repository.FileRepository) *UploadSvc {
 	return &UploadSvc{
 		repo: fileRepo,
@@ -26,10 +49,7 @@ func (svc *UploadSvc) Save(r *http.Request, ctx context.Context) error {
 		return err
 	}
 
-	var (
-		metadata model.MetaData
-		fileData model.FileData
-	)
+	metadataByID := make(map[string]model.MetaData)
 
 	for {
 		part, err := mr.NextPart()
@@ -40,48 +60,79 @@ func (svc *UploadSvc) Save(r *http.Request, ctx context.Context) error {
 			return err
 		}
 
-		switch part.FormName() {
-		case "metadata":
-			if err := json.NewDecoder(part).Decode(&metadata); err != nil {
+		name := part.FormName()
+
+		switch {
+		// Handle Metadata.
+		case strings.HasPrefix(name, "metadata-"):
+			idStr := strings.TrimPrefix(name, "metadata-")
+
+			// decode + build metadata
+			var dto MetaDataDTO
+			if err := json.NewDecoder(part).Decode(&dto); err != nil {
 				return err
 			}
-		case "file":
-			fileData = model.FileData{
-				Filename: part.FileName(),
-				Reader:   part,
+
+			ownerID, err := uuid.Parse(dto.OwnerID)
+			if err != nil {
+				return err
+			}
+
+			metadataByID[idStr] = model.MetaData{
+				ID:         uuid.MustParse(idStr),
+				FileName:   dto.RelativePath,
+				Path:       dto.Path,
+				Size:       dto.Size,
+				ModifiedAt: time.UnixMilli(dto.LastModified),
+				CreatedAt:  time.Now(),
+				Owner:      ownerID,
+				Version:    time.Now(),
+			}
+
+		// Handle Part containing file's binary data.
+		case strings.HasPrefix(name, "file-"):
+			// File has to be saved here, if you try to pass this to another temp location
+			// in memory then the data will be unusable.
+			if err := svc.saveFileData(
+				"/home/oliver/Development/25-26_CE301_keefe_oliver_b/backend/tempfiles",
+				part,
+				part.FileName(),
+			); err != nil {
+				return err
 			}
 		}
 	}
 
-	if err := svc.repo.SaveMetaData(metadata, ctx); err != nil {
-		return err
-	}
-
-	if err := svc.saveFileData("backend/tempfiles", fileData); err != nil {
-		return err
+	// Persist file metadata
+	for _, md := range metadataByID {
+		if err := svc.repo.SaveMetaData(md, ctx); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func (svc *UploadSvc) saveFileData(path string, data model.FileData) error {
-	err := os.MkdirAll(path, 0655)
-	if err != nil {
+// Helper method to save FilePart binary data.
+func (svc *UploadSvc) saveFileData(
+	basePath string,
+	part *multipart.Part,
+	filename string,
+) error {
+	if err := os.MkdirAll(basePath, 0755); err != nil {
 		return err
 	}
 
-	tmp, err := os.CreateTemp(path, data.Filename+"-*")
+	fileExtension := filepath.Ext(filename)
+	base := strings.TrimSuffix(filename, fileExtension)
+
+	tmp, err := os.CreateTemp(basePath, base+"-*"+fileExtension)
 	if err != nil {
 		return err
 	}
-	defer func(tmp *os.File) {
-		err := tmp.Close()
-		if err != nil {
-			return
-		}
-	}(tmp)
+	defer tmp.Close()
 
-	if _, err := io.Copy(tmp, data.Reader); err != nil {
+	if _, err := io.Copy(tmp, part); err != nil {
 		return err
 	}
 

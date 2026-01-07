@@ -31,8 +31,8 @@ export class UploadForm {
     private buildFormData() {
         Object.values(this.payload).forEach(({ metadata, file }) => {
             this.formData.append(
-                "metadata",
-                new Blob([JSON.stringify(metadata)], { type: "application/html" })
+                `metadata-${metadata.id}`,
+                JSON.stringify(metadata)
             )
 
             this.formData.append(
@@ -47,10 +47,18 @@ export class UploadForm {
         this.buildFormData();
         const url = "http://localhost:8081/api/files/upload"
 
+
         //const url = `${this.baseURL}/${endpoint}`;
         const options: RequestInit = {method: "POST", body: this.formData};
 
         const response = await fetch(url, options);
+        const contentType = response.headers.get("content-type");
+
+        if (contentType && contentType.includes("application/json")) {
+            return await response.json();
+        }
+
+        // Might be better off returning null here, need to rethink.
         await this.handleFailedUpload(response);
         return await response.json();
     }
