@@ -43,10 +43,23 @@ CREATE TABLE file_metadata(
     file_name VARCHAR(255) NOT NULL,
     path VARCHAR(255) NOT NULL,
     size BIGINT NOT NULL,
-    mode BIGINT NOT NULL,
-    is_dir BOOLEAN NOT NULL,
+    -- mode BIGINT NOT NULL,
+    file_type VARCHAR(255),
+    modified_at TIMESTAMP, --NOT NULL,
+    uploaded_at TIMESTAMP, --NOT NULL,
+    version TIMESTAMP, --NOT NULL,
+    checksum BYTEA,
+    owner UUID NOT NULL
+    -- owner UUID NOT NULL REFERENCES users(id)
+);
+
+-- DIRECTORY METADATA
+CREATE TABLE dir_metadata(
+    id UUID PRIMARY KEY NOT NULL,
+    dir_name VARCHAR(255) NOT NULL,
+    path VARCHAR(255) NOT NULL,
     modified_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP NOT NULL,
+    uploaded_at TIMESTAMP NOT NULL,
     owner UUID NOT NULL REFERENCES users(id)
 );
 
