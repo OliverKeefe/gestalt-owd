@@ -58,3 +58,29 @@ func (repo *Repository) SaveMetaData(meta files.MetaData, ctx context.Context) e
 
 	return err
 }
+
+// Helper method to save FilePart binary data.
+func (repo *Repository) SaveFileData(
+	basePath string,
+	part *multipart.Part,
+	filename string,
+) error {
+	if err := os.MkdirAll(basePath, 0755); err != nil {
+		return err
+	}
+
+	fileExtension := filepath.Ext(filename)
+	base := strings.TrimSuffix(filename, fileExtension)
+
+	tmp, err := os.CreateTemp(basePath, base+"-*"+fileExtension)
+	if err != nil {
+		return err
+	}
+	defer tmp.Close()
+
+	if _, err := io.Copy(tmp, part); err != nil {
+		return err
+	}
+
+	return nil
+}
