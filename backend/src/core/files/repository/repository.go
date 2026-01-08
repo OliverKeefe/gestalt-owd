@@ -4,20 +4,25 @@ import (
 	files "backend/src/core/files/model"
 	"backend/src/internal/metadb"
 	"context"
+	"io"
 	"log"
+	"mime/multipart"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
-type FileRepository struct {
+type Repository struct {
 	db *metadb.MetadataDatabase
 }
 
-func NewFileRepository(db *metadb.MetadataDatabase) *FileRepository {
-	return &FileRepository{
+func NewRepository(db *metadb.MetadataDatabase) *Repository {
+	return &Repository{
 		db: db,
 	}
 }
 
-func (repo *FileRepository) SaveMetaData(meta files.MetaData, ctx context.Context) error {
+func (repo *Repository) SaveMetaData(meta files.MetaData, ctx context.Context) error {
 	const query = `
     	INSERT INTO file_metadata (
     	    id,
