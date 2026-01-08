@@ -1,9 +1,10 @@
 package app
 
 import (
-	filesHandler "backend/src/core/files/handler"
-	filesRepo "backend/src/core/files/repository"
-	filesService "backend/src/core/files/service"
+	fileshandler "backend/src/core/files/handler"
+	filesrepo "backend/src/core/files/repository"
+	filesvc "backend/src/core/files/service"
+	"backend/src/internal/app/router"
 	metadb "backend/src/internal/metadb"
 	"backend/src/internal/middleware"
 	"context"
@@ -20,10 +21,8 @@ func Run() error {
 		return err
 	}
 
-	mux := http.NewServeMux()
-	registerRoutes(mux, db)
-
-	handler := middleware.EnableCORS(mux)
+	//TODO: Chain this instead, probably following functional options.
+	handler := middleware.EnableCORS(registerRoutes(db))
 
 	srv := &http.Server{
 		Addr:    ":8081",
@@ -34,10 +33,17 @@ func Run() error {
 	return srv.ListenAndServe()
 }
 
-func registerRoutes(mux *http.ServeMux, metadataDB *metadb.MetadataDatabase) {
-	fileRepo := filesRepo.NewFileRepository(metadataDB)
-	uploadSvc := filesService.NewUploadService(fileRepo)
-	mux.HandleFunc("/api/files/upload", filesHandler.UploadHandler(uploadSvc))
+func registerRoutes(metadataDB *metadb.MetadataDatabase) *http.ServeMux {
+	filesRepo := filesrepo.NewRepository(metadataDB)
+	filesService := filesvc.NewService(filesRepo)
+	filesHandler := fileshandler.NewHandler(filesService)
+
+	return router.New(
+		router.Handle(
+			"POST /api/files/upload",
+			http.HandlerFunc(filesHandler.Upload),
+		),
+	)
 }
 
 type Config struct {
