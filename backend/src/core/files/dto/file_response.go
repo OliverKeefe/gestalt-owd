@@ -24,7 +24,7 @@ type FileDTO struct {
 	Version time.Time `json:"version"`
 }
 
-func MapTo(m files.MetaData) FileDTO {
+func MapToResponse(m files.MetaData) FileDTO {
 	return FileDTO{
 		ID:         m.ID,
 		FileName:   m.FileName,
