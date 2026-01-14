@@ -2,7 +2,7 @@ package files
 
 import (
 	service "backend/src/core/files/service"
-	"encoding/json"
+	"backend/src/internal/api/message"
 	"log"
 	"net/http"
 )
@@ -28,12 +28,20 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not save file", http.StatusInternalServerError)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err := json.NewEncoder(w).Encode(map[string]string{
-		"status": "uploaded",
-	})
+	err := message.Response(w, "uploaded")
 	if err != nil {
+		log.Print(err)
 		return
+	}
+}
+
+func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
+	svc := h.svc
+
+	userUUID := r.URL.Query().Get("user_uuid")
+	files, err := svc.GetAll(userUUID, r.Context())
+	if err != nil {
+		log.Printf("couldn't get all user's files: %v", err)
+		http.Error(w, "unable to get user's files", http.StatusInternalServerError)
 	}
 }
