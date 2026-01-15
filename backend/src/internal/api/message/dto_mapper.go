@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func MapToResponse[T any](src any) (T, error) {
+func mapFields[T any](src any) (T, error) {
 	var response T
 
 	dstValue := reflect.ValueOf(&response).Elem()
@@ -17,7 +17,7 @@ func MapToResponse[T any](src any) (T, error) {
 		dv := dstValue.Field(i)
 
 		if !dv.CanSet() {
-			log.Printf("could not map value: %v, is unexported or read-only?", dv)
+			log.Printf("could not map value: %v, is it unexported or read-only?", dv)
 			continue
 		}
 
@@ -36,4 +36,16 @@ func MapToResponse[T any](src any) (T, error) {
 	}
 
 	return response, nil
+}
+
+func ToRequest[T any](src any) (T, error) {
+	return mapFields[T](src)
+}
+
+func ToResponse[T any](src any) (T, error) {
+	return mapFields[T](src)
+}
+
+func ToModel[T any](src any) (T, error) {
+	return mapFields[T](src)
 }
