@@ -53,6 +53,10 @@ CREATE TABLE file_metadata(
     -- owner UUID NOT NULL REFERENCES users(id)
 );
 
+-- INDEX FOR FILE METADATA PAGINATION
+CREATE INDEX CONCURRENTLY idx_file_owner_modified_desc
+ON file_metadata (owner, modified_at DESC, id DESC);
+
 -- DIRECTORY METADATA
 CREATE TABLE dir_metadata(
     id UUID PRIMARY KEY NOT NULL,
