@@ -1,12 +1,12 @@
 package files
 
 import (
-	"backend/src/core/files/dto"
-	model "backend/src/core/files/model"
+	data "backend/src/core/files/data"
 	repository "backend/src/core/files/repository"
 	"context"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -25,13 +25,30 @@ func NewService(fileRepo *repository.Repository) *Service {
 	}
 }
 
+// multipartMetadata is a Data Transfer Object for multipart form for file uploads
+// from the web gui frontend.
+// When the web frontend sends a multipart form, metadata is stored
+// as raw json.
+type multipartMetadata struct {
+	Path             string `json:"path"`
+	RelativePath     string `json:"relativePath"`
+	LastModified     int64  `json:"lastModified"`
+	LastModifiedDate string `json:"lastModifiedDate"`
+	Size             uint64 `json:"size"`
+	FileType         string `json:"fileType"`
+
+	ID       string `json:"id"`
+	OwnerID  string `json:"ownerId"`
+	CheckSum string `json:"checkSum"`
+}
+
 func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
 	mr, err := r.MultipartReader()
 	if err != nil {
 		return err
 	}
 
-	metadataByID := make(map[string]model.MetaData)
+	metadataByID := make(map[string]data.MetaData)
 
 	for {
 		part, err := mr.NextPart()
@@ -50,7 +67,7 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
 			idStr := strings.TrimPrefix(name, "metadata-")
 
 			// decode + build metadata
-			var decodedRequest dto.MetaDataDTO
+			var decodedRequest multipartMetadata
 			if err := json.NewDecoder(part).Decode(&decodedRequest); err != nil {
 				return err
 			}
@@ -60,7 +77,7 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
 				return err
 			}
 
-			metadataByID[idStr] = model.MetaData{
+			metadataByID[idStr] = data.MetaData{
 				ID:         uuid.MustParse(idStr),
 				FileName:   decodedRequest.RelativePath,
 				Path:       decodedRequest.Path,
@@ -93,4 +110,27 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (svc *Service) GetAll(ctx context.Context, request data.GetAllMetadataRequest) ([]data.MetaDataResponse, error) {
+	var (
+		repo     = svc.repo
+		files    []data.MetaData
+		response []data.MetaDataResponse
+	)
+
+	files, err := repo.GetAllFiles(ctx, request)
+	if err != nil {
+		log.Printf("unable to get all files for user: %s, %v ", request.UserID, err)
+	}
+
+	for _, file := range files {
+		file := file.ToResponse()
+		if err != nil {
+			log.Printf("unable to map file metadata: %s, to dto: %v", file, err)
+		}
+		response = append(response, file)
+	}
+
+	return response, nil
 }

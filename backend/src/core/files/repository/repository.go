@@ -1,8 +1,8 @@
 package files
 
 import (
-	"backend/src/core/files/dto"
-	files "backend/src/core/files/model"
+	data "backend/src/core/files/data"
+
 	"backend/src/internal/metadb"
 	"context"
 	"io"
@@ -23,7 +23,8 @@ func NewRepository(db *metadb.MetadataDatabase) *Repository {
 	}
 }
 
-func (repo *Repository) SaveMetaData(meta files.MetaData, ctx context.Context) error {
+// TODO: add the checksum field
+func (repo *Repository) SaveMetaData(meta data.MetaData, ctx context.Context) error {
 	const query = `
     	INSERT INTO file_metadata (
     	    id,
@@ -86,7 +87,7 @@ func (repo *Repository) SaveFileData(
 	return nil
 }
 
-func (repo *Repository) GetAllFiles(ctx context.Context, req dto.GetAllFilesRequest) ([]files.MetaData, error) {
+func (repo *Repository) GetAllFiles(ctx context.Context, req data.GetAllMetadataRequest) ([]data.MetaData, error) {
 	var db = repo.db.Pool
 
 	const query = `
@@ -108,7 +109,7 @@ func (repo *Repository) GetAllFiles(ctx context.Context, req dto.GetAllFilesRequ
 		LIMIT 20;
 	`
 
-	var result []files.MetaData
+	var result []data.MetaData
 
 	rows, err := db.Query(
 		ctx,
@@ -123,7 +124,7 @@ func (repo *Repository) GetAllFiles(ctx context.Context, req dto.GetAllFilesRequ
 	defer rows.Close()
 
 	for rows.Next() {
-		var model files.MetaData
+		var model data.MetaData
 		if err := rows.Scan(
 			&model.ID,
 			&model.FileName,
