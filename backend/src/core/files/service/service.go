@@ -111,3 +111,26 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
 
 	return nil
 }
+
+func (svc *Service) GetAll(ctx context.Context, request data.GetAllMetadataRequest) ([]data.MetaDataResponse, error) {
+	var (
+		repo     = svc.repo
+		files    []data.MetaData
+		response []data.MetaDataResponse
+	)
+
+	files, err := repo.GetAllFiles(ctx, request)
+	if err != nil {
+		log.Printf("unable to get all files for user: %s, %v ", request.UserID, err)
+	}
+
+	for _, file := range files {
+		file := file.ToResponse()
+		if err != nil {
+			log.Printf("unable to map file metadata: %s, to dto: %v", file, err)
+		}
+		response = append(response, file)
+	}
+
+	return response, nil
+}
