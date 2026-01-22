@@ -29,7 +29,7 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not save file", http.StatusInternalServerError)
 	}
 
-	err := message.Response(w, "uploaded")
+	err := message.Response(w, "uploaded", nil)
 	if err != nil {
 		log.Print(err)
 		return
@@ -39,8 +39,18 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	svc := h.svc
 
-	userUUID := r.URL.Query().Get("user_uuid")
-	files, err := svc.GetAll(userUUID, r.Context())
+	if r.Body == nil || r.ContentLength <= 0 {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+	}
+
+	var request data.GetAllMetadataRequest
+	err := request.Bind(r)
+	if err != nil {
+		log.Printf("couldn't map http request to dto: %v", err)
+		http.Error(w, "invalid request", http.StatusBadRequest)
+	}
+
+	files, err := svc.GetAll(r.Context(), request)
 	if err != nil {
 		log.Printf("couldn't get all user's files: %v", err)
 		http.Error(w, "unable to get user's files", http.StatusInternalServerError)
