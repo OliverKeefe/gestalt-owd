@@ -1,6 +1,7 @@
 package files
 
 import (
+	data "backend/src/core/files/data"
 	service "backend/src/core/files/service"
 	"backend/src/internal/api/message"
 	"log"
@@ -44,4 +45,42 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 		log.Printf("couldn't get all user's files: %v", err)
 		http.Error(w, "unable to get user's files", http.StatusInternalServerError)
 	}
+
+	if err = message.Response(w, "fetched user's files", files); err != nil {
+		log.Printf("unable to return response, %v", err)
+		return
+	}
+}
+
+func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
+	svc := h.svc
+	var request data.GetMetadataRequest
+
+	if err := request.Bind(r); err != nil {
+		log.Printf("unable to bind raw request to GetMetadataRequest, %v", err)
+		http.Error(w, "invalid request", http.StatusBadRequest)
+	}
+
+	files, err := svc.GetMetadata(r.Context(), request)
+	if err != nil {
+		log.Printf("couldn't get all user's files: %v", err)
+		http.Error(w, "unable to get user's files", http.StatusInternalServerError)
+	}
+
+	if err = message.Response(w, "fetched user's files", files); err != nil {
+		log.Printf("unable to return response, %v", err)
+		return
+	}
+}
+
+func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
+	panic("not implemented.")
+}
+
+func (h *Handler) UpdateMetadata(w http.ResponseWriter, r *http.Request) {
+	panic("not implemented.")
+}
+
+func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	panic("not implemented")
 }
