@@ -83,7 +83,7 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
 				Path:       decodedRequest.Path,
 				Size:       decodedRequest.Size,
 				ModifiedAt: time.UnixMilli(decodedRequest.LastModified),
-				CreatedAt:  time.Now(),
+				UploadedAt: time.Now(),
 				Owner:      ownerID,
 				Version:    time.Now(),
 			}
