@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type GetMetadataFilter struct {
@@ -17,7 +18,7 @@ type GetMetadataFilter struct {
 	Size       *uint64
 	FileType   *string
 	ModifiedAt *time.Time
-	CreatedAt  *time.Time
+	UploadedAt *time.Time
 	Owner      *uuid.UUID
 	AccessTo   *[]uuid.UUID
 	Group      *[]uuid.UUID
@@ -32,7 +33,7 @@ func buildMetadataFilter(model files.MetaData) GetMetadataFilter {
 		Size:       &model.Size,
 		FileType:   &model.FileType,
 		ModifiedAt: &model.ModifiedAt,
-		CreatedAt:  &model.CreatedAt,
+		UploadedAt: &model.UploadedAt,
 		Owner:      &model.Owner,
 		AccessTo:   &model.AccessTo,
 		Group:      &model.Group,
@@ -45,7 +46,7 @@ type GetMetadataSpec struct {
 	args    []any
 }
 
-func GetMetadataQuery(model files.MetaData) (string, error) {
+func GetMetadataQuery(model files.MetaData) (string, []any, error) {
 	filter := buildMetadataFilter(model)
 
 	spec := buildGetMetadataSpec(
@@ -55,19 +56,19 @@ func GetMetadataQuery(model files.MetaData) (string, error) {
 		WithSize(filter.Size),
 		WithFileType(filter.FileType),
 		WithModifiedAt(filter.ModifiedAt),
-		WithCreatedAt(filter.CreatedAt),
+		WithCreatedAt(filter.UploadedAt),
 		WithOwner(filter.Owner),
 		WithAccessTo(filter.AccessTo),
 		WithGroup(filter.Group),
 		WithVersion(filter.Version),
 	)
 
-	query, err := buildGetMetadataQuery(spec)
+	query, args, err := buildGetMetadataQuery(spec)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	return query, nil
+	return query, args, nil
 }
 
 type Option func(*GetMetadataSpec)
@@ -80,34 +81,22 @@ func buildGetMetadataSpec(opts ...Option) GetMetadataSpec {
 	return q
 }
 
-func buildGetMetadataQuery(spec GetMetadataSpec) (string, error) {
+func buildGetMetadataQuery(spec GetMetadataSpec) (string, []any, error) {
 	if spec.isEmpty() {
-		return "", errors.New("unable to build query as MetadataSpec fields are all nil")
+		return "", nil, errors.New("unable to build query as MetadataSpec fields are all nil")
 	}
 
-	const baseQuery = `SELECT 
-							id,
-							file_name,
-							path,
-							size,
-							file_type,
-							modified_at,
-							uploaded_at,
-							version,
-							checksum,
-							owner
-						FROM file_metadata
+	const baseQuery = `SELECT id, file_name, path, size, file_type, modified_at, 
+       uploaded_at, version, checksum, owner FROM file_metadata
  	`
 
 	clauses := make([]string, len(spec.clauses))
 	for i, c := range spec.clauses {
-		clauses[i] = strings.Replace(c, "?", fmt.Sprintf("%d", i+1), 1)
+		clauses[i] = strings.Replace(c, "?", fmt.Sprintf("$%d", i+1), 1)
 	}
 
-	query := fmt.Sprintf("%s %s", "WHERE ", strings.Join(clauses, " AND "), spec.args)
-
-	return query, nil
-	//return "WHERE " + strings.Join(clauses, " AND "), spec.args, nil
+	query := fmt.Sprintf("%s WHERE %s", baseQuery, strings.Join(clauses, " AND "))
+	return query, spec.args, nil
 }
 
 func WithID(id *uuid.UUID) Option {
@@ -175,7 +164,7 @@ func WithCreatedAt(t *time.Time) Option {
 		return func(*GetMetadataSpec) {}
 	}
 	return func(spec *GetMetadataSpec) {
-		spec.clauses = append(spec.clauses, "created_at = ?")
+		spec.clauses = append(spec.clauses, "uploaded_at = ?")
 		spec.args = append(spec.args, *t)
 	}
 }
@@ -195,8 +184,8 @@ func WithAccessTo(ids *[]uuid.UUID) Option {
 		return func(*GetMetadataSpec) {}
 	}
 	return func(spec *GetMetadataSpec) {
-		spec.clauses = append(spec.clauses, "access_to = ?")
-		spec.args = append(spec.args, *ids)
+		spec.clauses = append(spec.clauses, "access_to @> ?")
+		spec.args = append(spec.args, pq.Array(*ids))
 	}
 }
 
@@ -205,8 +194,8 @@ func WithGroup(groups *[]uuid.UUID) Option {
 		return func(*GetMetadataSpec) {}
 	}
 	return func(spec *GetMetadataSpec) {
-		spec.clauses = append(spec.clauses, "groups = ?")
-		spec.args = append(spec.args, *groups)
+		spec.clauses = append(spec.clauses, "groups @> ?")
+		spec.args = append(spec.args, pq.Array(*groups))
 	}
 }
 
