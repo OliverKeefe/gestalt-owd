@@ -23,7 +23,7 @@ type MetaData struct {
 	Mode       fs.FileMode
 	IsDir      bool
 	ModifiedAt time.Time
-	CreatedAt  *time.Time
+	UploadedAt *time.Time
 	Owner      string
 	AccessTo   []string
 	Group      []string
