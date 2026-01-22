@@ -47,10 +47,10 @@ func TestJSONHandler_ReceivePost(t *testing.T) {
 
 	var got response
 	if err := json.NewDecoder(resp.Body).Decode(&got); err != nil {
-		t.Fatalf("failed to decode response: %v", err)
+		t.Fatalf("failed to decode dto: %v", err)
 	}
 
 	if got.Message != "ok" {
-		t.Fatalf("unexpected response: %+v", got)
+		t.Fatalf("unexpected dto: %+v", got)
 	}
 }
