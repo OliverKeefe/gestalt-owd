@@ -2,9 +2,9 @@ package files
 
 import (
 	data "backend/src/core/files/data"
-
 	"backend/src/internal/metadb"
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"mime/multipart"
@@ -51,7 +51,7 @@ func (repo *Repository) SaveMetaData(meta data.MetaData, ctx context.Context) er
 		meta.Size,
 		meta.FileType,
 		meta.ModifiedAt,
-		meta.CreatedAt,
+		meta.UploadedAt,
 		meta.Version,
 		meta.Owner,
 	)
@@ -132,7 +132,7 @@ func (repo *Repository) GetAllFiles(ctx context.Context, req data.GetAllMetadata
 			&model.Size,
 			&model.FileType,
 			&model.ModifiedAt,
-			&model.CreatedAt,
+			&model.UploadedAt,
 			&model.Owner,
 			&model.AccessTo,
 			&model.Group,
@@ -146,6 +146,46 @@ func (repo *Repository) GetAllFiles(ctx context.Context, req data.GetAllMetadata
 
 	if err := rows.Err(); err != nil {
 		return nil, err
+	}
+
+	return result, nil
+}
+
+func (repo *Repository) GetFiles(ctx context.Context, model data.MetaData) ([]data.MetaData, error) {
+	db := repo.db.Pool
+	var result []data.MetaData
+
+	query, args, err := GetMetadataQuery(model)
+	if err != nil {
+		fmt.Errorf("unable to build GetMetadataQuery, %v", err)
+		return nil, err
+	}
+
+	rows, err := db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var model data.MetaData
+		if err := rows.Scan(
+			&model.ID,
+			&model.FileName,
+			&model.Path,
+			&model.Size,
+			&model.FileType,
+			&model.ModifiedAt,
+			&model.UploadedAt,
+			&model.Owner,
+			&model.AccessTo,
+			&model.Group,
+			&model.Version,
+		); err != nil {
+			return nil, err
+		}
+
+		result = append(result, model)
 	}
 
 	return result, nil
