@@ -1,8 +1,8 @@
 package files
 
 import (
-	data "backend/src/core/files/data"
-	"backend/src/internal/metadb"
+	"backend/src/internal/db/metadb"
+	data "backend/src/usecase/files/data"
 	"context"
 	"fmt"
 	"io"
@@ -35,7 +35,7 @@ func (repo *Repository) SaveMetaData(meta data.MetaData, ctx context.Context) er
     	    modified_at,
     	    uploaded_at,
     	    version,
-    	    owner
+    	    owner_id
     	) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
     `
 
@@ -101,9 +101,9 @@ func (repo *Repository) GetAllFiles(ctx context.Context, req data.GetAllMetadata
 			uploaded_at,
 			version,
 			checksum,
-			owner
+			owner_id
 		FROM file_metadata
-		WHERE owner = $1
+		WHERE owner_id = $1
   			AND (modified_at, id) < ($2, $3)
 		ORDER BY modified_at, id 
 		LIMIT 20;
