@@ -61,7 +61,7 @@ CREATE TABLE file_metadata(
 
 -- INDEX FOR FILE METADATA PAGINATION
 CREATE INDEX CONCURRENTLY idx_file_owner_modified_desc
-ON file_metadata (owner, modified_at DESC, id DESC);
+ON file_metadata (owner_id, modified_at DESC, id DESC);
 
 -- DIRECTORY METADATA
 CREATE TABLE dir_metadata(
