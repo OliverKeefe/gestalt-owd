@@ -56,7 +56,7 @@ func GetMetadataQuery(model files.MetaData) (string, []any, error) {
 		WithSize(filter.Size),
 		WithFileType(filter.FileType),
 		WithModifiedAt(filter.ModifiedAt),
-		WithCreatedAt(filter.UploadedAt),
+		WithUploadedAt(filter.UploadedAt),
 		WithOwner(filter.Owner),
 		WithAccessTo(filter.AccessTo),
 		WithGroup(filter.Group),
@@ -87,7 +87,7 @@ func buildGetMetadataQuery(spec GetMetadataSpec) (string, []any, error) {
 	}
 
 	const baseQuery = `SELECT id, file_name, path, size, file_type, modified_at, 
-       uploaded_at, version, checksum, owner FROM file_metadata
+       uploaded_at, version, checksum, owner_id FROM file_metadata
  	`
 
 	clauses := make([]string, len(spec.clauses))
@@ -99,6 +99,10 @@ func buildGetMetadataQuery(spec GetMetadataSpec) (string, []any, error) {
 	return query, spec.args, nil
 }
 
+func (spec *GetMetadataSpec) nextArg() int {
+	return len(spec.args) + 1
+}
+
 func WithID(id *uuid.UUID) Option {
 	if id == nil {
 		return func(*GetMetadataSpec) {}
@@ -106,6 +110,11 @@ func WithID(id *uuid.UUID) Option {
 	return func(spec *GetMetadataSpec) {
 		spec.clauses = append(spec.clauses, "id = ?")
 		spec.args = append(spec.args, *id)
+		idx := len(spec.args)
+		spec.clauses = append(
+			spec.clauses,
+			fmt.Sprintf("id = $%d", idx),
+		)
 	}
 }
 
@@ -116,6 +125,10 @@ func WithPath(path *string) Option {
 	return func(spec *GetMetadataSpec) {
 		spec.clauses = append(spec.clauses, "path = ?")
 		spec.args = append(spec.args, *path)
+		idx := len(spec.args)
+		spec.clauses = append(
+			spec.clauses,
+			fmt.Sprintf("path = $%d", idx))
 	}
 }
 
@@ -126,6 +139,10 @@ func WithFileName(filename *string) Option {
 	return func(spec *GetMetadataSpec) {
 		spec.clauses = append(spec.clauses, "file_name = ?")
 		spec.args = append(spec.args, *filename)
+		idx := len(spec.args)
+		spec.clauses = append(
+			spec.clauses,
+			fmt.Sprintf("file_name = $%d", idx))
 	}
 }
 
@@ -136,6 +153,10 @@ func WithSize(size *uint64) Option {
 	return func(spec *GetMetadataSpec) {
 		spec.clauses = append(spec.clauses, "size = ?")
 		spec.args = append(spec.args, *size)
+		idx := len(spec.args)
+		spec.clauses = append(
+			spec.clauses,
+			fmt.Sprintf("size = $%d", idx))
 	}
 }
 
@@ -146,6 +167,10 @@ func WithFileType(fileType *string) Option {
 	return func(spec *GetMetadataSpec) {
 		spec.clauses = append(spec.clauses, "file_type = ?")
 		spec.args = append(spec.args, *fileType)
+		idx := len(spec.args)
+		spec.clauses = append(
+			spec.clauses,
+			fmt.Sprintf("file_type = $%d", idx))
 	}
 }
 
@@ -156,16 +181,26 @@ func WithModifiedAt(t *time.Time) Option {
 	return func(spec *GetMetadataSpec) {
 		spec.clauses = append(spec.clauses, "modified_at = ?")
 		spec.args = append(spec.args, *t)
+		idx := len(spec.args)
+		spec.clauses = append(
+			spec.clauses,
+			fmt.Sprintf("modified_at = $%d", idx))
 	}
 }
 
-func WithCreatedAt(t *time.Time) Option {
+// WithUploadedAt is the functional option to append the time the
+// file was uploaded at, to the query.
+func WithUploadedAt(t *time.Time) Option {
 	if t == nil {
 		return func(*GetMetadataSpec) {}
 	}
 	return func(spec *GetMetadataSpec) {
 		spec.clauses = append(spec.clauses, "uploaded_at = ?")
 		spec.args = append(spec.args, *t)
+		idx := len(spec.args)
+		spec.clauses = append(
+			spec.clauses,
+			fmt.Sprintf("uploaded_at = $%d", idx))
 	}
 }
 
@@ -176,6 +211,10 @@ func WithOwner(owner *uuid.UUID) Option {
 	return func(spec *GetMetadataSpec) {
 		spec.clauses = append(spec.clauses, "owner = ?")
 		spec.args = append(spec.args, *owner)
+		idx := len(spec.args)
+		spec.clauses = append(
+			spec.clauses,
+			fmt.Sprintf("owner_id = $%d", idx))
 	}
 }
 
@@ -184,7 +223,13 @@ func WithAccessTo(ids *[]uuid.UUID) Option {
 		return func(*GetMetadataSpec) {}
 	}
 	return func(spec *GetMetadataSpec) {
-		spec.clauses = append(spec.clauses, "access_to @> ?")
+		spec.clauses = append(spec.clauses, `
+			EXISTS (
+				SELECT 1 FROM file_user_access fua 
+				WHERE fua.file_id = file_metadata.id
+					AND fua.user_id = ANY (?) 
+			)
+		`)
 		spec.args = append(spec.args, pq.Array(*ids))
 	}
 }
@@ -194,7 +239,13 @@ func WithGroup(groups *[]uuid.UUID) Option {
 		return func(*GetMetadataSpec) {}
 	}
 	return func(spec *GetMetadataSpec) {
-		spec.clauses = append(spec.clauses, "groups @> ?")
+		spec.clauses = append(spec.clauses, `
+			EXISTS (
+				SELECT 1 FROM file_metadata_group_access fga
+				WHERE fga.file_id = file_metadata.id
+					AND fga.group_id = ANY (?)
+			)
+		`)
 		spec.args = append(spec.args, pq.Array(*groups))
 	}
 }
@@ -204,8 +255,11 @@ func WithVersion(version *time.Time) Option {
 		return func(*GetMetadataSpec) {}
 	}
 	return func(spec *GetMetadataSpec) {
-		spec.clauses = append(spec.clauses, "version = ?")
 		spec.args = append(spec.args, *version)
+		idx := len(spec.args)
+		spec.clauses = append(
+			spec.clauses,
+			fmt.Sprintf("version = $%d", idx))
 	}
 }
 
