@@ -71,8 +71,12 @@ func GetMetadataQuery(model files.MetaData) (string, []any, error) {
 	return query, args, nil
 }
 
+// Option is function type that accepts the spec as a param.
 type Option func(*GetMetadataSpec)
 
+// buildGetMetadataSpec takes functional options as args and constructs
+// a new GetMetadataSpec struct containing each field within the metadata
+// relation that is to be queried. e.g. `ID`, `FileName`, `FileType` etc...
 func buildGetMetadataSpec(opts ...Option) GetMetadataSpec {
 	q := GetMetadataSpec{}
 	for _, opt := range opts {
@@ -108,7 +112,6 @@ func WithID(id *uuid.UUID) Option {
 		return func(*GetMetadataSpec) {}
 	}
 	return func(spec *GetMetadataSpec) {
-		spec.clauses = append(spec.clauses, "id = ?")
 		spec.args = append(spec.args, *id)
 		idx := len(spec.args)
 		spec.clauses = append(
@@ -123,7 +126,6 @@ func WithPath(path *string) Option {
 		return func(*GetMetadataSpec) {}
 	}
 	return func(spec *GetMetadataSpec) {
-		spec.clauses = append(spec.clauses, "path = ?")
 		spec.args = append(spec.args, *path)
 		idx := len(spec.args)
 		spec.clauses = append(
@@ -137,7 +139,6 @@ func WithFileName(filename *string) Option {
 		return func(*GetMetadataSpec) {}
 	}
 	return func(spec *GetMetadataSpec) {
-		spec.clauses = append(spec.clauses, "file_name = ?")
 		spec.args = append(spec.args, *filename)
 		idx := len(spec.args)
 		spec.clauses = append(
@@ -151,7 +152,6 @@ func WithSize(size *uint64) Option {
 		return func(*GetMetadataSpec) {}
 	}
 	return func(spec *GetMetadataSpec) {
-		spec.clauses = append(spec.clauses, "size = ?")
 		spec.args = append(spec.args, *size)
 		idx := len(spec.args)
 		spec.clauses = append(
@@ -160,12 +160,13 @@ func WithSize(size *uint64) Option {
 	}
 }
 
+// WithFileType is the functional option to append `file_type`
+// to the query.
 func WithFileType(fileType *string) Option {
 	if fileType == nil {
 		return func(*GetMetadataSpec) {}
 	}
 	return func(spec *GetMetadataSpec) {
-		spec.clauses = append(spec.clauses, "file_type = ?")
 		spec.args = append(spec.args, *fileType)
 		idx := len(spec.args)
 		spec.clauses = append(
@@ -174,12 +175,13 @@ func WithFileType(fileType *string) Option {
 	}
 }
 
+// WithModifiedAt is the functional option to append last time
+// the file was modified at, to the query.
 func WithModifiedAt(t *time.Time) Option {
 	if t == nil {
 		return func(*GetMetadataSpec) {}
 	}
 	return func(spec *GetMetadataSpec) {
-		spec.clauses = append(spec.clauses, "modified_at = ?")
 		spec.args = append(spec.args, *t)
 		idx := len(spec.args)
 		spec.clauses = append(
@@ -195,7 +197,6 @@ func WithUploadedAt(t *time.Time) Option {
 		return func(*GetMetadataSpec) {}
 	}
 	return func(spec *GetMetadataSpec) {
-		spec.clauses = append(spec.clauses, "uploaded_at = ?")
 		spec.args = append(spec.args, *t)
 		idx := len(spec.args)
 		spec.clauses = append(
@@ -204,12 +205,13 @@ func WithUploadedAt(t *time.Time) Option {
 	}
 }
 
+// WithOwner is the functional option to append file owner's
+// uuid to the query.
 func WithOwner(owner *uuid.UUID) Option {
 	if owner == nil {
 		return func(*GetMetadataSpec) {}
 	}
 	return func(spec *GetMetadataSpec) {
-		spec.clauses = append(spec.clauses, "owner = ?")
 		spec.args = append(spec.args, *owner)
 		idx := len(spec.args)
 		spec.clauses = append(
@@ -218,6 +220,8 @@ func WithOwner(owner *uuid.UUID) Option {
 	}
 }
 
+// WithAccessTo is the functional option to append uuids of the
+// user's with permissions to access the file to the query.
 func WithAccessTo(ids *[]uuid.UUID) Option {
 	if ids == nil {
 		return func(*GetMetadataSpec) {}
@@ -234,6 +238,7 @@ func WithAccessTo(ids *[]uuid.UUID) Option {
 	}
 }
 
+// WithGroup is the functional option to append `groups` to the query.
 func WithGroup(groups *[]uuid.UUID) Option {
 	if groups == nil {
 		return func(*GetMetadataSpec) {}
@@ -250,6 +255,7 @@ func WithGroup(groups *[]uuid.UUID) Option {
 	}
 }
 
+// WithVersion is the functional option to append `version` to the query.
 func WithVersion(version *time.Time) Option {
 	if version == nil {
 		return func(*GetMetadataSpec) {}
@@ -263,6 +269,7 @@ func WithVersion(version *time.Time) Option {
 	}
 }
 
+// TODO: Fix this because it's never nil so this doesn't work.
 func (spec *GetMetadataSpec) isEmpty() bool {
 	return spec.clauses == nil &&
 		spec.args == nil
