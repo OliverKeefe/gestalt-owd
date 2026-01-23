@@ -1,7 +1,7 @@
 package files
 
 import (
-	files "backend/src/core/files/data"
+	files "backend/src/usecase/files/data"
 	"errors"
 	"fmt"
 	"strings"
