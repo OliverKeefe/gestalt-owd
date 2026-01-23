@@ -73,9 +73,20 @@ CREATE TABLE dir_metadata(
     owner UUID NOT NULL REFERENCES users(id)
 );
 
--- FILE ACCESS
+-- FILE <-> USER ACCESS (MtM)
 CREATE TABLE file_metadata_access(
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     file_id UUID NOT NULL REFERENCES file_metadata(id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, file_id)
+);
+
+-- FILE <-> GROUP ACCESS (MtM)
+CREATE TABLE file_metadata_group_access(
+    file_id UUID REFERENCES file_metadata(id) ON DELETE CASCADE,
+    group_id UUID REFERENCES groups(id) ON DELETE CASCADE
+);
+
+CREATE TABLE file_user_access(
+    file_id UUID REFERENCES file_metadata(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE
 );
