@@ -1,8 +1,8 @@
 package files
 
 import (
-	data "backend/src/core/files/data"
-	repository "backend/src/core/files/repository"
+	data "backend/src/usecase/files/data"
+	repository "backend/src/usecase/files/repository"
 	"context"
 	"encoding/json"
 	"io"
@@ -83,7 +83,7 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
 				Path:       decodedRequest.Path,
 				Size:       decodedRequest.Size,
 				ModifiedAt: time.UnixMilli(decodedRequest.LastModified),
-				CreatedAt:  time.Now(),
+				UploadedAt: time.Now(),
 				Owner:      ownerID,
 				Version:    time.Now(),
 			}
@@ -133,4 +133,41 @@ func (svc *Service) GetAll(ctx context.Context, request data.GetAllMetadataReque
 	}
 
 	return response, nil
+}
+
+func (svc *Service) FindMetadata(ctx context.Context, request data.FindMetadataRequest) ([]data.MetaData, error) {
+	var (
+		repo  = svc.repo
+		files []data.MetaData
+	)
+
+	model := request.ToModel()
+	files, err := repo.FindMetadata(ctx, model)
+	if err != nil {
+		log.Printf("unable to get file metadata: %v", err)
+		return files, err
+	}
+
+	return files, nil
+}
+
+func (svc *Service) Delete(ctx context.Context, request data.DeleteRequest) error {
+
+	err := svc.repo.DeleteMetadata(ctx, request.ID, request.OwnerID)
+	if err != nil {
+		log.Printf("could not delete file metadata, %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (svc *Service) MoveToRubbish(ctx context.Context, request data.DeleteRequest) error {
+	err := svc.repo.MarkForDeletion(ctx, request.ID, request.OwnerID)
+	if err != nil {
+		log.Printf("unable to move file or metadata to rubbish bin, %v", err)
+		return err
+	}
+
+	return nil
 }

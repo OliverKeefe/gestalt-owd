@@ -37,6 +37,13 @@ CREATE TABLE bucket_groups (
     PRIMARY KEY (bucket_id, group_id)
 );
 
+-- ACCESS TO FILE
+CREATE TABLE access_to(
+    access_group_id UUID REFERENCES groups(id) ON DELETE CASCADE,
+    access_user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    PRIMARY KEY (access_group_id, access_user_id)
+);
+
 -- FILE METADATA
 CREATE TABLE file_metadata(
     id UUID PRIMARY KEY NOT NULL,
@@ -49,13 +56,12 @@ CREATE TABLE file_metadata(
     uploaded_at TIMESTAMP, --NOT NULL,
     version TIMESTAMP, --NOT NULL,
     checksum BYTEA,
-    owner UUID NOT NULL
-    -- owner UUID NOT NULL REFERENCES users(id)
+    owner_id UUID NOT NULL REFERENCES users(id)
 );
 
 -- INDEX FOR FILE METADATA PAGINATION
 CREATE INDEX CONCURRENTLY idx_file_owner_modified_desc
-ON file_metadata (owner, modified_at DESC, id DESC);
+ON file_metadata (owner_id, modified_at DESC, id DESC);
 
 -- DIRECTORY METADATA
 CREATE TABLE dir_metadata(
@@ -67,9 +73,20 @@ CREATE TABLE dir_metadata(
     owner UUID NOT NULL REFERENCES users(id)
 );
 
--- FILE ACCESS
+-- FILE <-> USER ACCESS (MtM)
 CREATE TABLE file_metadata_access(
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     file_id UUID NOT NULL REFERENCES file_metadata(id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, file_id)
+);
+
+-- FILE <-> GROUP ACCESS (MtM)
+CREATE TABLE file_metadata_group_access(
+    file_id UUID REFERENCES file_metadata(id) ON DELETE CASCADE,
+    group_id UUID REFERENCES groups(id) ON DELETE CASCADE
+);
+
+CREATE TABLE file_user_access(
+    file_id UUID REFERENCES file_metadata(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE
 );

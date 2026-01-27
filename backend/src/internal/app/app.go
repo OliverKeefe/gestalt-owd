@@ -46,6 +46,9 @@ func registerRoutes(metadataDB *metadb.MetadataDatabase) *http.ServeMux {
 		router.Handle("POST /api/files/get-all",
 			http.HandlerFunc(filesHandler.GetAll),
 		),
+		router.Handle("POST /api/files/get",
+			http.HandlerFunc(filesHandler.FindMetadata),
+		),
 	)
 }
 
