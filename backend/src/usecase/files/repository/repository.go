@@ -190,3 +190,35 @@ func (repo *Repository) GetFiles(ctx context.Context, model data.MetaData) ([]da
 
 	return result, nil
 }
+
+func (repo *Repository) DeleteMetadata(ctx context.Context, id uuid.UUID, ownerId uuid.UUID) error {
+	const query = `DELETE FROM file_metadata WHERE id = $1 AND owner_id = $2;`
+
+	status, err := repo.db.Pool.Exec(ctx, query, id, ownerId)
+	if err != nil {
+		return fmt.Errorf(
+			"status: %s, could not delete file metadata, %w",
+			status,
+			err,
+		)
+	}
+
+	rows := status.RowsAffected()
+
+	if rows == 0 {
+		return errors.New("no record found")
+	}
+
+	return nil
+}
+
+func (repo *Repository) Modify(ctx context.Context, model data.MetaData) (error, data.MetaData) {
+	panic("not implemented")
+}
+
+func (repo *Repository) MarkForDeletion(ctx context.Context, id uuid.UUID, id2 uuid.UUID) error {
+	panic("not implemented")
+	// Should add flag to relation in metadata to delete x days (depending on user policy
+	// default = 30d), then need cleaner func to bulk cleanse metadata db and before this,
+	// remove file data from both virtual disc and IPFS node.
+}
