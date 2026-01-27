@@ -161,3 +161,13 @@ func (svc *Service) Delete(ctx context.Context, request data.DeleteRequest) erro
 
 	return nil
 }
+
+func (svc *Service) MoveToRubbish(ctx context.Context, request data.DeleteRequest) error {
+	err := svc.repo.MarkForDeletion(ctx, request.ID, request.OwnerID)
+	if err != nil {
+		log.Printf("unable to move file or metadata to rubbish bin, %v", err)
+		return err
+	}
+
+	return nil
+}
