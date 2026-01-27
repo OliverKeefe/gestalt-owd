@@ -135,14 +135,14 @@ func (svc *Service) GetAll(ctx context.Context, request data.GetAllMetadataReque
 	return response, nil
 }
 
-func (svc *Service) GetMetadata(ctx context.Context, request data.GetMetadataRequest) ([]data.MetaData, error) {
+func (svc *Service) FindMetadata(ctx context.Context, request data.FindMetadataRequest) ([]data.MetaData, error) {
 	var (
 		repo  = svc.repo
 		files []data.MetaData
 	)
 
 	model := request.ToModel()
-	files, err := repo.GetFiles(ctx, model)
+	files, err := repo.FindMetadata(ctx, model)
 	if err != nil {
 		log.Printf("unable to get file metadata: %v", err)
 		return files, err
