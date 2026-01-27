@@ -29,17 +29,8 @@ func NewRepository(db *metadb.MetadataDatabase) *Repository {
 // TODO: add the checksum field
 func (repo *Repository) SaveMetaData(meta data.MetaData, ctx context.Context) error {
 	const query = `
-    	INSERT INTO file_metadata (
-    	    id,
-    	    file_name,
-    	    path,
-    	    size,
-    	    file_type,
-    	    modified_at,
-    	    uploaded_at,
-    	    version,
-    	    owner_id
-    	) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+    	INSERT INTO file_metadata (id, file_name, path, size, file_type, modified_at,
+    	    uploaded_at, version, owner_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9);
     `
 
 	log.Printf("metadata=%+v", meta)
