@@ -133,17 +133,12 @@ func (repo *Repository) GetAllFiles(
 	return result, nil
 }
 
-func (repo *Repository) GetFiles(ctx context.Context, model data.MetaData) ([]data.MetaData, error) {
-	db := repo.db.Pool
+func (repo *Repository) FindMetadata(ctx context.Context, model data.MetaData) ([]data.MetaData, error) {
 	var result []data.MetaData
 
-	query, args, err := GetMetadataQuery(model)
-	if err != nil {
-		fmt.Errorf("unable to build GetMetadataQuery, %v", err)
-		return nil, err
-	}
+	query, args := FindMetadataQuery(model)
 
-	rows, err := db.Query(ctx, query, args...)
+	rows, err := repo.db.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
