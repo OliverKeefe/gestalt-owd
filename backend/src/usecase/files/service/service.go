@@ -1,8 +1,8 @@
 package files
 
 import (
-	data "backend/src/core/files/data"
-	repository "backend/src/core/files/repository"
+	data "backend/src/usecase/files/data"
+	repository "backend/src/usecase/files/repository"
 	"context"
 	"encoding/json"
 	"io"
@@ -149,4 +149,15 @@ func (svc *Service) GetMetadata(ctx context.Context, request data.GetMetadataReq
 	}
 
 	return files, nil
+}
+
+func (svc *Service) Delete(ctx context.Context, request data.DeleteRequest) error {
+
+	err := svc.repo.DeleteMetadata(ctx, request.ID, request.OwnerID)
+	if err != nil {
+		log.Printf("could not delete file metadata, %v", err)
+		return err
+	}
+
+	return nil
 }
