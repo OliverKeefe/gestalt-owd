@@ -4,6 +4,7 @@ import (
 	"backend/src/internal/db/metadb"
 	data "backend/src/usecase/files/data"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
