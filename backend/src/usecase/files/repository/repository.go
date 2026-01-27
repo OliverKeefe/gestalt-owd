@@ -77,21 +77,13 @@ func (repo *Repository) SaveFileData(basePath string, part *multipart.Part, file
 	return nil
 }
 
-func (repo *Repository) GetAllFiles(ctx context.Context, req data.GetAllMetadataRequest) ([]data.MetaData, error) {
+func (repo *Repository) GetAllFiles(
+	ctx context.Context,
+	req data.GetAllMetadataRequest,
+) ([]data.MetaData, error) {
 	var db = repo.db.Pool
 
-	const query = `
-		SELECT
-			id,
-			file_name,
-			path,
-			size,
-			file_type,
-			modified_at,
-			uploaded_at,
-			version,
-			checksum,
-			owner_id
+	const query = `SELECT id, file_name, path, size, file_type, modified_at, uploaded_at, version, checksum, owner_id 
 		FROM file_metadata
 		WHERE owner_id = $1
   			AND (modified_at, id) < ($2, $3)
