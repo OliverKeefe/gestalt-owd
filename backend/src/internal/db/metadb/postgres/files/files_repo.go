@@ -1,7 +1,7 @@
 package files
 
 import (
-	model "backend/src/core/files/model"
+	model "backend/src/usecase/files/data"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
