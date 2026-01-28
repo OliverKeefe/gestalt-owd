@@ -1,9 +1,9 @@
 package files
 
 import (
-	data "backend/src/core/files/data"
-	service "backend/src/core/files/service"
 	"backend/src/internal/api/message"
+	data "backend/src/usecase/files/data"
+	service "backend/src/usecase/files/service"
 	"log"
 	"net/http"
 )
@@ -62,16 +62,16 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) FindMetadata(w http.ResponseWriter, r *http.Request) {
 	svc := h.svc
-	var request data.GetMetadataRequest
+	var request data.FindMetadataRequest
 
 	if err := request.Bind(r); err != nil {
-		log.Printf("unable to bind raw request to GetMetadataRequest, %v", err)
+		log.Printf("unable to bind raw request to FindMetadataRequest, %v", err)
 		http.Error(w, "invalid request", http.StatusBadRequest)
 	}
 
-	files, err := svc.GetMetadata(r.Context(), request)
+	files, err := svc.FindMetadata(r.Context(), request)
 	if err != nil {
 		log.Printf("couldn't get all user's files: %v", err)
 		http.Error(w, "unable to get user's files", http.StatusInternalServerError)
@@ -92,5 +92,29 @@ func (h *Handler) UpdateMetadata(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
-	panic("not implemented")
+	var request data.DeleteRequest
+
+	if err := request.Bind(r); err != nil {
+		log.Printf("unable to bind request to DeleteRequest %v", err)
+		http.Error(w, "invalid request", http.StatusBadRequest)
+	}
+
+	if err := h.svc.Delete(r.Context(), request); err != nil {
+		log.Printf("unable to delete file metadata, %v", err)
+		http.Error(w, "unable to delete file", http.StatusExpectationFailed)
+	}
+}
+
+func (h *Handler) TempDelete(w http.ResponseWriter, r *http.Request) {
+	var request data.DeleteRequest
+
+	if err := request.Bind(r); err != nil {
+		log.Printf("unable to bind request to DeleteRequest %v", err)
+		http.Error(w, "invalid request", http.StatusBadRequest)
+	}
+
+	if err := h.svc.MoveToRubbish(r.Context(), request); err != nil {
+		log.Printf("unable to delete file metadata, %v", err)
+		http.Error(w, "unable to delete file", http.StatusExpectationFailed)
+	}
 }
