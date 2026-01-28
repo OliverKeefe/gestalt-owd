@@ -57,10 +57,18 @@ export async function extractMetadata(file: File): Promise<Metadata> {
         throw new Error("MediaInfo returned void")
     }
 
-    const extracted = JSON.parse(result) as ExtractedMetadata
+    //const media = JSON.parse(result);
 
     return {
-        ...extracted,
+        path: file.name,
+        relativePath: file.webkitRelativePath || file.name,
+        lastModified: file.lastModified,
+        lastModifiedDate: new Date(file.lastModified).toISOString(),
+        size: file.size,
+        fileType: file.type,
+
+        //media,
+
         id: crypto.randomUUID(),
         ownerId: crypto.randomUUID(),
         checkSum: "a".repeat(256),

@@ -20,7 +20,7 @@ type Claims struct {
 }
 
 type OAuth2 interface {
-	ValidateJWT(ctx context.Context, rawJWT string) (*Claims, error)
+	Authenticator(ctx context.Context, rawJWT string) (*Claims, error)
 	ReissueJWT(ctx context.Context, refreshToken string) (string, error)
 }
 

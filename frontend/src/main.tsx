@@ -20,13 +20,14 @@ async function auth() {
     const kc = await initKeycloak();
 
     if (kc) {
+        useAuthStore.getState().setToken(kc.token ?? null);
         console.log('Token:', kc.token);
         console.log('User:', kc.tokenParsed?.preferred_username);
     }
 
     if (kc?.tokenParsed) {
         const userId = kc.tokenParsed.sub;
-        useAuthStore.getState().setUserId(userId);
+        useAuthStore.getState().setUserId(userId ?? null);
     }
 
     const isAuthenticated = !!kc;
