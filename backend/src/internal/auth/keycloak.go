@@ -3,8 +3,8 @@ package auth
 import (
 	"log"
 
-var (
-	_ = OAuth2(*Keycloak)(nil)
+	"github.com/MicahParks/keyfunc/v3"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type Authenticator struct {
