@@ -4,6 +4,7 @@ import (
 	data "backend/src/usecase/files/data"
 	repository "backend/src/usecase/files/repository"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"io"
 	"log"
@@ -39,7 +40,7 @@ type multipartMetadata struct {
 
 	ID       string `json:"id"`
 	OwnerID  string `json:"ownerId"`
-	CheckSum string `json:"checkSum"`
+	CheckSum []byte `json:"checkSum"`
 }
 
 func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
@@ -90,18 +91,24 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
 
 		// Handle Part containing file's binary data.
 		case strings.HasPrefix(name, "file-"):
+			idStr := strings.TrimPrefix(name, "file-")
 			// File has to be saved here, if you try to pass this to another temp location
 			// in memory then the data will be unusable.
+
+			hash := sha256.New()
+
 			if err := svc.repo.SaveFileData(
 				"/home/oliver/Development/25-26_CE301_keefe_oliver_b/backend/tempfiles",
-				part,
+				io.TeeReader(part, hash),
 				part.FileName(),
 			); err != nil {
 				return err
 			}
+			md := metadataByID[idStr]
+			md.CheckSum = hash.Sum(nil)
+			metadataByID[idStr] = md
 		}
 	}
-
 	// Persist file metadata
 	for _, md := range metadataByID {
 		if err := svc.repo.SaveMetaData(md, ctx); err != nil {
