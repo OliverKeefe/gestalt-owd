@@ -4,8 +4,32 @@ import (
 	query "backend/src/internal/api/query"
 	files "backend/src/usecase/files/data"
 	"fmt"
+	"log"
 	"strings"
 )
+
+func PersistMetadataQuery(m files.MetaData) (string, []any) {
+	const sql = `
+    	INSERT INTO file_metadata (id, file_name, path, size, file_type, modified_at,
+    	    uploaded_at, version, owner_id, checksum) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10);
+    `
+
+	args := []any{
+		m.ID,
+		m.FileName,
+		m.Path,
+		m.Size,
+		m.FileType,
+		m.ModifiedAt,
+		m.UploadedAt,
+		m.Version,
+		m.Owner,
+		m.CheckSum,
+	}
+
+	log.Printf("checksum len=%d hex=%x", len(m.CheckSum), m.CheckSum)
+	return sql, args
+}
 
 func FindMetadataQuery(m files.MetaData) (string, []any) {
 	const baseQuery = `SELECT id, file_name, path, size, file_type, modified_at, 
