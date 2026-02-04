@@ -1,4 +1,5 @@
 import {extractMetadata, type Metadata} from "@/app/features/shared/files/metadata";
+import {useAuthStore} from "@/security/auth/authstore/auth-store.ts";
 
 type PayloadItem = {
     id: string
@@ -26,6 +27,7 @@ export class UploadForm {
             const id = metadata.id;
             this.payload.push({ id, metadata, file })
         }
+
     }
 
     private buildFormData() {
@@ -48,8 +50,17 @@ export class UploadForm {
         const url = "http://localhost:8081/api/files/upload"
 
 
+
+        const token = useAuthStore.getState().token;
+        console.log(token);
+
         //const url = `${this.baseURL}/${endpoint}`;
-        const options: RequestInit = {method: "POST", body: this.formData};
+        const options: RequestInit = {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            method: "POST",
+            body: this.formData};
 
         const response = await fetch(url, options);
         const contentType = response.headers.get("content-type");
@@ -70,5 +81,9 @@ export class UploadForm {
             throw new Error(`Upload failed with status ${response.status}`);
         }
     }
+
+    //private async uploadIPFS(): Promise<Response> {
+    //    this.formData.forEach()
+    //}
 }
 
