@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"mime/multipart"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type Repository struct {
@@ -28,35 +28,14 @@ func NewRepository(db *metadb.MetadataDatabase) *Repository {
 
 // TODO: add the checksum field
 func (repo *Repository) SaveMetaData(meta data.MetaData, ctx context.Context) error {
-	const query = `
-    	INSERT INTO file_metadata (id, file_name, path, size, file_type, modified_at,
-    	    uploaded_at, version, owner_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9);
-    `
-
-	log.Printf("metadata=%+v", meta)
-
-	var db = repo.db.Pool
-	status, err := db.Exec(
-		ctx,
-		query,
-		meta.ID,
-		meta.FileName,
-		meta.Path,
-		meta.Size,
-		meta.FileType,
-		meta.ModifiedAt,
-		meta.UploadedAt,
-		meta.Version,
-		meta.Owner,
-	)
-
+	query, args := PersistMetadataQuery(meta)
+	status, err := repo.db.Pool.Query(ctx, query, args...)
 	log.Printf("DB Status: %s", status)
-
 	return err
 }
 
 // Helper method to save FilePart binary data.
-func (repo *Repository) SaveFileData(basePath string, part *multipart.Part, filename string) error {
+func (repo *Repository) SaveFileData(basePath string, rdr io.Reader, filename string) error {
 	if err := os.MkdirAll(basePath, 0755); err != nil {
 		return err
 	}
@@ -70,7 +49,7 @@ func (repo *Repository) SaveFileData(basePath string, part *multipart.Part, file
 	}
 	defer tmp.Close()
 
-	if _, err := io.Copy(tmp, part); err != nil {
+	if _, err := io.Copy(tmp, rdr); err != nil {
 		return err
 	}
 
