@@ -81,29 +81,39 @@ func (repo *Repository) GetAllFiles(
 	ctx context.Context,
 	req data.GetAllMetadataRequest,
 ) ([]data.MetaData, error) {
-	var db = repo.db.Pool
 
-	const query = `SELECT id, file_name, path, size, file_type, modified_at, uploaded_at, version, checksum, owner_id 
-		FROM file_metadata
-		WHERE owner_id = $1
-  			AND (modified_at, id) < ($2, $3)
-		ORDER BY modified_at, id 
-		LIMIT 20;
-	`
-
-	var result []data.MetaData
-
-	rows, err := db.Query(
-		ctx,
-		query,
-		req.UserID,
-		req.Cursor.ModifiedAt,
-		req.Cursor.ID,
+	var (
+		rows pgx.Rows
+		err  error
 	)
+
+	if req.Cursor == nil || req.Cursor.ID == uuid.Nil || req.Cursor.ModifiedAt.IsZero() {
+		rows, err = repo.db.Pool.Query(ctx, `
+			SELECT id, file_name, path, size, file_type, modified_at,
+				uploaded_at, owner_id, checksum, version 
+			FROM file_metadata
+			WHERE owner_id = $1
+			ORDER BY modified_at DESC, id DESC
+			LIMIT $2;
+		`, req.UserID, req.Limit)
+
+	} else {
+		rows, err = repo.db.Pool.Query(ctx, `
+			SELECT id, file_name, path, size, file_type, modified_at,
+				uploaded_at, owner_id, checksum, version
+			FROM file_metadata
+			WHERE owner_id = $1
+				AND (modified_at, id) < ($2, $3)
+			ORDER BY modified_at DESC, id DESC
+			LIMIT $4;
+		`, req.UserID, req.Cursor.ModifiedAt, req.Cursor.ID, req.Limit)
+	}
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
+
+	result := make([]data.MetaData, 0, req.Limit)
 
 	for rows.Next() {
 		var model data.MetaData
@@ -116,8 +126,9 @@ func (repo *Repository) GetAllFiles(
 			&model.ModifiedAt,
 			&model.UploadedAt,
 			&model.Owner,
-			&model.AccessTo,
-			&model.Group,
+			//&model.AccessTo,
+			//&model.Group,
+			&model.CheckSum,
 			&model.Version,
 		); err != nil {
 			return nil, err
