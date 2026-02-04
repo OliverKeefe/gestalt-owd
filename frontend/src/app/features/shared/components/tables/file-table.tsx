@@ -1,46 +1,12 @@
-import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {useEffect, useMemo, useState} from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RestHandler } from "@/app/features/shared/api/rest/rest-handler.ts";
-import {UploadDialog} from "@/app/features/shared/components/dialog/upload-dialog.tsx";
-import {Button} from "@/components/ui/button.tsx";
-import {Clock, FolderPlus, Star} from "lucide-react";
-
-const data = {
-    files: [
-        {
-            id: 1,
-            name: "Santander Bank Statement 2025",
-            lastModified: "10-01-25",
-            icon: "🀄",
-            type: ".PDF",
-            size: "1.52 MB",
-            owner: "Steve Smith",
-            access: "Everyone",
-        },
-        {
-            id: 2,
-            name: "CV",
-            lastModified: "10-01-25",
-            icon: "📄",
-            type: ".DOCX",
-            size: "7.9 MB",
-            owner: "Steve Smith",
-            access: "Only You",
-        },
-        {
-            id: 3,
-            name: "Place",
-            lastModified: "10-01-25",
-            icon: "📄",
-            type: "Folder",
-            size: "73.9 MB",
-            owner: "Steve Smith",
-            access: "Only You",
-        },
-    ]
-}
+import { UploadDialog } from "@/app/features/shared/components/dialog/upload-dialog.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { Clock, FolderPlus, Star } from "lucide-react";
+import {type CursorReq, getAllMetadata, type GetAllMetadataReq} from "@/app/features/home/hooks/handler.ts";
+import type {Metadata} from "@/app/features/home/hooks/data.ts";
+import {useAuthStore} from "@/security/auth/authstore/auth-store.ts";
 
 
 export function FileTable() {
@@ -81,27 +47,34 @@ export function FileTable() {
     return (
         <div>
             <h1 className="text-2xl font-semibold pb-4 pt-4 m-1">All files</h1>
-            <nav className={"w-full flex gap-3"}>
-                <Button variant="default" title="Recents">
+
+            <nav className="w-full flex gap-3">
+                <Button variant="default">
                     <Clock /> Recents
                 </Button>
-                <UploadDialog />
-                <Button variant="default" title="NewFolder">
+
+                <UploadDialog
+                    onUploaded={(newFile) => setFiles((prev) => [...prev, newFile])}
+                />
+
+                <Button variant="default">
                     <FolderPlus /> New Folder
                 </Button>
-                <Button variant="default" title="Favorite">
+
+                <Button variant="default">
                     <Star /> Favorites
                 </Button>
             </nav>
-            <Table className={"mt-2"}>
+
+            <Table className="mt-2">
                 <TableHeader>
                     <TableRow>
                         <TableHead className="w-[30px]">
                             <Checkbox
-                                checked={selected.length === data.files.length}
+                                checked={selected.length === files.length}
                                 onCheckedChange={(checked) => {
                                     if (checked) {
-                                        setSelected(data.files.map((file) => file.id));
+                                        setSelected(files.map((file) => file.uuid));
                                     } else {
                                         setSelected([]);
                                     }
@@ -109,24 +82,25 @@ export function FileTable() {
                             />
                         </TableHead>
                         <TableHead className="w-[100px]">Last Modified</TableHead>
-                        <TableHead>Access</TableHead>
                         <TableHead>Name</TableHead>
+                        <TableHead>Path</TableHead>
                         <TableHead className="text-right">Type</TableHead>
                     </TableRow>
                 </TableHeader>
+
                 <TableBody>
-                    {data.files.map((file) => (
-                        <TableRow key={file.id}>
+                    {files.map((file) => (
+                        <TableRow key={file.uuid}>
                             <TableCell>
                                 <Checkbox
-                                    checked={selected.includes(file.id)}
-                                    onCheckedChange={() => toggleSelect(file.id)}
+                                    checked={selected.includes(file.uuid)}
+                                    onCheckedChange={() => toggleSelect(file.uuid)}
                                 />
                             </TableCell>
-                            <TableCell className="font-medium">{file.lastModified}</TableCell>
-                            <TableCell>{file.access}</TableCell>
-                            <TableCell>{file.icon} {file.name}</TableCell>
-                            <TableCell className="text-right">{file.type}</TableCell>
+                            <TableCell>{file.modified_at}</TableCell>
+                            <TableCell>{file.file_name}</TableCell>
+                            <TableCell>{file.path}</TableCell>
+                            <TableCell className="text-right">{file.file_type}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
