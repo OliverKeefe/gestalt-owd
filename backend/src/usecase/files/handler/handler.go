@@ -41,6 +41,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	if r.Body == nil || r.ContentLength <= 0 {
 		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
 	}
 
 	var request data.GetAllMetadataRequest
@@ -48,12 +49,14 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("couldn't map http request to dto: %v", err)
 		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
 	}
 
 	files, err := svc.GetAll(r.Context(), request)
 	if err != nil {
 		log.Printf("couldn't get all user's files: %v", err)
 		http.Error(w, "unable to get user's files", http.StatusInternalServerError)
+		return
 	}
 
 	if err = message.Response(w, "fetched user's files", files); err != nil {
