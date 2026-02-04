@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useState } from "react";
+import {useEffect, useMemo, useState} from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RestHandler } from "@/app/features/shared/api/rest/rest-handler.ts";
 import {UploadDialog} from "@/app/features/shared/components/dialog/upload-dialog.tsx";
@@ -44,11 +44,37 @@ const data = {
 
 
 export function FileTable() {
-    const [selected, setSelected] = useState<number[]>([]);
+    const cur = useMemo<CursorReq>(() => ({
+        modified_at: null, //"2025-02-13T11:21:04.791Z",
+        id: null, //"c7a1735e-504e-47d9-a8c0-a0e37f7df8b3",
+    }), []);
 
-    const toggleSelect = (id: number) => {
+    const userId = useAuthStore((s) => s.userId);
+
+    const req = useMemo<GetAllMetadataReq>(() => ({
+        user_id: userId,
+        cursor: cur,
+        limit: 20,
+    }), [cur, userId]);
+
+    const [files, setFiles] = useState<Metadata[]>([]);
+
+    useEffect(() => {
+        if (!userId) return;
+
+        getAllMetadata(req).then((resp) => {
+            setFiles(resp.metadata);
+        });
+    }, [req, userId]);
+
+
+    const [selected, setSelected] = useState<string[]>([]);
+
+    const toggleSelect = (id: string) => {
         setSelected((prev) =>
-            prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+            prev.includes(id)
+                ? prev.filter((item) => item !== id)
+                : [...prev, id]
         );
     };
 
