@@ -1,6 +1,7 @@
 import {ObjectType} from "@/app/features/shared/storacha/types.ts";
 import type {Metadata} from "@/app/features/shared/files/metadata.ts";
-import {StorachaClient} from "@/app/features/shared/storacha/client.ts";
+import {StorachaClient, StorachaLogin} from "@/app/features/shared/storacha/client.ts";
+import cred from "@/app/features/shared/storacha/cred.json";
 
 
 export async function uploadObject(
@@ -12,15 +13,17 @@ export async function uploadObject(
 ): Promise<string | null> {
 
 
-    const account = await StorachaClient.login("test@test.galacy");
+    //const account = await StorachaClient.login("test@test.galacy");
     //const space = await StorachaClient.createSpace("test-space", {account})
-    await StorachaClient.setCurrentSpace(`did:key:${did}`);
+    //await StorachaClient.setCurrentSpace(`did:key:${did}`);
+    await StorachaLogin(cred).then();
 
     switch (objectType) {
         case ObjectType.FILE: {
             const file = makeDataBlobLike(filedata[0], metadata[0]);
             try {
                 const cid = await StorachaClient.uploadFile(file);
+
                 return cid.toString();
             } catch (err) {
                 console.log("unable to upload to storacha network: ", err);
