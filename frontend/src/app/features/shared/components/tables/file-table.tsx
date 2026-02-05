@@ -4,9 +4,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { UploadDialog } from "@/app/features/shared/components/dialog/upload-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Clock, FolderPlus, Star } from "lucide-react";
-import {type CursorReq, getAllMetadata, type GetAllMetadataReq} from "@/app/features/home/hooks/handler.ts";
-import type {Metadata} from "@/app/features/home/hooks/data.ts";
+import {type CursorReq, getAllMetadata, type GetAllMetadataReq} from "@/app/features/files/hooks/handler.ts";
+import type {Metadata} from "@/app/features/files/hooks/types.ts";
 import {useAuthStore} from "@/security/auth/authstore/auth-store.ts";
+import {FileIcon, getIconForFile} from "@react-symbols/icons/utils";
 
 
 export function FileTable() {
@@ -49,7 +50,7 @@ export function FileTable() {
             <h1 className="text-2xl font-semibold pb-4 pt-4 m-1">All files</h1>
 
             <nav className="w-full flex gap-3">
-                <Button variant="default">
+                <Button variant="outline">
                     <Clock /> Recents
                 </Button>
 
@@ -57,11 +58,11 @@ export function FileTable() {
                     onUploaded={(newFile) => setFiles((prev) => [...prev, newFile])}
                 />
 
-                <Button variant="default">
+                <Button variant="outline">
                     <FolderPlus /> New Folder
                 </Button>
 
-                <Button variant="default">
+                <Button variant="outline">
                     <Star /> Favorites
                 </Button>
             </nav>
@@ -81,10 +82,9 @@ export function FileTable() {
                                 }}
                             />
                         </TableHead>
-                        <TableHead className="w-[100px]">Last Modified</TableHead>
+                        <TableHead className="text-left"></TableHead>
                         <TableHead>Name</TableHead>
-                        <TableHead>Path</TableHead>
-                        <TableHead className="text-right">Type</TableHead>
+                        <TableHead className="">Last Modified</TableHead>
                     </TableRow>
                 </TableHeader>
 
@@ -97,10 +97,16 @@ export function FileTable() {
                                     onCheckedChange={() => toggleSelect(file.uuid)}
                                 />
                             </TableCell>
-                            <TableCell>{file.modified_at}</TableCell>
+                            <TableCell>
+                                <div className={"w-4"}>
+                                    {getIconForFile({
+                                        fileName: file.file_name,
+                                    })}
+                                </div>
+                            </TableCell>
                             <TableCell>{file.file_name}</TableCell>
-                            <TableCell>{file.path}</TableCell>
-                            <TableCell className="text-right">{file.file_type}</TableCell>
+                            <TableCell >{file.modified_at}</TableCell>
+                            <TableCell >{":"}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
