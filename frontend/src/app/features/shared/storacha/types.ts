@@ -5,3 +5,10 @@ export enum ObjectType {
 }
 
 export type CID = string;
+
+export type DID = `did:key:{$Key}`;
+
+export type StorachaUserInfo = {
+    account: string;
+    did: DID;
+}
