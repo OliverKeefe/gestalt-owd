@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,12 +25,37 @@ func NewRepository(db *metadb.MetadataDatabase) *Repository {
 	}
 }
 
-// TODO: add the checksum field
 func (repo *Repository) SaveMetaData(meta data.MetaData, ctx context.Context) error {
-	query, args := PersistMetadataQuery(meta)
-	status, err := repo.db.Pool.Query(ctx, query, args...)
-	log.Printf("DB Status: %s", status)
-	return err
+	const query = `INSERT INTO file_metadata (
+                           id,
+                           file_name,
+                           path, size, 
+                           file_type,
+                           modified_at,
+                           uploaded_at,
+                           version,
+                           checksum,
+                           owner_id) 
+					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);`
+
+	_, err := repo.db.Pool.Exec(
+		ctx,
+		query,
+		meta.ID,
+		meta.FileName,
+		meta.Path,
+		meta.Size,
+		meta.FileType,
+		meta.ModifiedAt,
+		meta.UploadedAt,
+		meta.Version,
+		meta.CheckSum,
+		meta.Owner,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Helper method to save FilePart binary data.
