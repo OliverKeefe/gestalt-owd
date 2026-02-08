@@ -112,5 +112,9 @@ export function FileTable() {
                 </TableBody>
             </Table>
         </div>
-    );
+    )
+}
+
+function formatDate(date: string): string {
+    return new Date(date).toLocaleString()
 }
