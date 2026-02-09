@@ -73,7 +73,9 @@ export function FileTable() {
                     onUploaded={(newFiles) => {
                         if (!newFiles.length) return
                         addOptimisticFiles(newFiles)
-                        setFiles((prev) => [...newFiles, ...prev])
+                        setFiles((prev) => {
+                            return [...newFiles, ...prev];
+                        })
                     }}
                 />
 
