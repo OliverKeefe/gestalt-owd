@@ -26,7 +26,6 @@ func New(issuer, jwksUrl string) (*Authenticator, error) {
 }
 
 func (k *Authenticator) ValidateJWT(jwtB64 string) (bool, error) {
-	log.Printf(jwtB64)
 	kf := func(t *jwt.Token) (any, error) {
 		return k.KeyFunc.Keyfunc(t)
 	}

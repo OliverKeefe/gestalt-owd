@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"backend/src/internal/auth"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -21,7 +20,6 @@ func Protect(a *auth.Authenticator, next http.Handler) http.Handler {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
-		log.Printf(h)
 
 		token := strings.TrimPrefix(h, "Bearer ")
 		ok, err := a.ValidateJWT(token)

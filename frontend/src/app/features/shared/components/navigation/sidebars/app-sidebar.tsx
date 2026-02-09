@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/sidebar.tsx"
 import { UploadDialog } from "@/app/features/shared/components/dialog/upload-dialog.tsx";
 import {RestHandler} from "@/app/features/shared/api/rest/rest-handler.ts";
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface FolderData {
   id: string;
@@ -112,7 +113,7 @@ const data = {
   ],
   favorites: [
     {
-      name: "project_management_tracker.xlsx",
+      name: "budget_tracker.xlsx",
       url: "#",
       emoji: "📄",
     },
@@ -172,7 +173,7 @@ const data = {
     },
     {
       name: "Creative Projects",
-      emoji: "📁",
+      emoji: "🖌️",
       pages: [
         {
           name: "Writing Ideas & Story Outlines",
@@ -193,7 +194,7 @@ const data = {
     },
     {
       name: "Home Management",
-      emoji: "📁",
+      emoji: "🪴",
       pages: [
         {
           name: "Household Budget & Expense Tracking.docx",
@@ -214,7 +215,7 @@ const data = {
     },
     {
       name: "Travel & Holidays",
-      emoji: "📁",
+      emoji: "✈️",
       pages: [
         {
           name: "Trip Planning & Itineraries",
@@ -247,19 +248,23 @@ function GetFolders(): Promise<FolderData[]> {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  return (
-    <Sidebar className="border-r-0" {...props}>
-      <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
-        <NavMain items={data.navMain} />
+    return (
+        <Sidebar className="border-r-0 left-16" {...props}>
+            <SidebarHeader>
+                <TeamSwitcher teams={data.teams} />
+                <NavMain items={data.navMain} />
+            </SidebarHeader>
 
-      </SidebarHeader>
-      <SidebarContent>
-        <NavFavorites favorites={data.favorites} />
-        <NavWorkspaces workspaces={data.workspaces} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
-      </SidebarContent>
-      <SidebarRail />
-    </Sidebar>
-  )
+            <SidebarContent className="min-h-0">
+                <ScrollArea className="h-full [&_[data-radix-scroll-area-scrollbar]]:w-1" >
+                    <NavFavorites favorites={data.favorites} />
+                    <NavWorkspaces workspaces={data.workspaces} />
+                    <NavSecondary items={data.navSecondary} className="mt-auto" />
+                </ScrollArea>
+            </SidebarContent>
+
+            <SidebarRail />
+        </Sidebar>
+    )
 }
+

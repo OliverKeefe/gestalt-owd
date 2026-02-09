@@ -1,27 +1,43 @@
 package router
 
-import "net/http"
+import (
+	"backend/src/internal/auth"
+	"backend/src/internal/db/metadb"
+	"backend/src/internal/middleware"
+	fileshandler "backend/src/usecase/files/handler"
+	filesrepo "backend/src/usecase/files/repository"
+	filesvc "backend/src/usecase/files/service"
+	"net/http"
+)
 
-type Route func(*http.ServeMux)
-
-func New(routes ...Route) *http.ServeMux {
-	mux := http.NewServeMux()
-
-	for _, route := range routes {
-		route(mux)
+var (
+	protected = func(a *auth.Authenticator, h http.HandlerFunc) http.Handler {
+		return middleware.Protect(a, h)
 	}
+)
 
-	return mux
-}
+func RegisterFileRoutes(
+	mux *http.ServeMux,
+	a *auth.Authenticator,
+	db *metadb.MetadataDatabase,
+) {
+	repo := filesrepo.NewRepository(db)
+	svc := filesvc.NewService(repo)
+	h := fileshandler.NewHandler(svc)
 
-func Handle(pattern string, h http.Handler) Route {
-	return func(mux *http.ServeMux) {
-		mux.Handle(pattern, h)
-	}
-}
-
-func HandleFunc(pattern string, h http.HandlerFunc) Route {
-	return func(mux *http.ServeMux) {
-		mux.HandleFunc(pattern, h)
-	}
+	upload := protected(a, h.Upload)
+	mux.Handle(
+		"POST /api/files/upload",
+		upload,
+	)
+	findMetadata := protected(a, h.FindMetadata)
+	mux.Handle(
+		"POST /api/files/find",
+		findMetadata,
+	)
+	getAllMetadata := protected(a, h.GetAll)
+	mux.Handle(
+		"POST /api/files/get-all",
+		getAllMetadata,
+	)
 }

@@ -1,26 +1,31 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
     Dialog,
     DialogContent,
-    DialogTitle,
-    DialogTrigger,
+    DialogDescription,
     DialogHeader,
-    DialogDescription
+    DialogTitle,
+    DialogTrigger
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button.tsx";
-import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@/components/ui/shadcn-io/dropzone";
-import { Upload } from "lucide-react";
-import { RestHandler } from "@/app/features/shared/api/rest/rest-handler.ts";
+import {Button} from "@/components/ui/button.tsx";
+import {Dropzone, DropzoneContent, DropzoneEmptyState} from "@/components/ui/shadcn-io/dropzone";
+import {Upload} from "lucide-react";
+import {RestHandler} from "@/app/features/shared/api/rest/rest-handler.ts";
 import {UploadForm} from "@/app/features/shared/files/upload.ts";
+import {uploadObject} from "@/app/features/shared/storacha/upload.ts";
+import {ObjectType} from "@/app/features/shared/storacha/types.ts";
+import type {Metadata} from "@/app/features/shared/files/metadata.ts";
+
 
 type UploadDialogProps = {
-    onUploaded?: (file: any) => void;
+    onUploaded?: (files: Metadata[]) => void;
 };
 
 const api = new RestHandler(`http://localhost:8081`);
 
 
-export function UploadDialog() {
+export function UploadDialog({onUploaded}: UploadDialogProps) {
+    const [alert, setAlertVisible] = useState(false);
     const [open, setDialogOpen] = useState(false);
     const [files, setFiles] = useState<File[] | null>(null);
 
@@ -46,8 +51,44 @@ export function UploadDialog() {
             await upload.prepare();
 
             console.log("Sending upload form data...")
+            const optimistic: Metadata[] = files.map((f) => ({
+                uuid: crypto.randomUUID(), // temp ID
+                file_name: f.name,
+                path: "",
+                size: f.size,
+                file_type: f.type,
+                modified_at: new Date().toISOString(),
+                created_at: new Date().toISOString(),
+                owner_id: "", // or userId if available
+                access_to: [],
+                group_id: [],
+                checksum: new Uint8Array(),
+                version: new Date().toISOString(),
+            }));
             const response = await upload.send();
-            console.log(response)
+
+            onUploaded?.(optimistic);
+
+
+            const bytes = new Uint8Array(100);
+            crypto.getRandomValues(bytes);
+
+            const testMetadata: Metadata[] = [
+                {
+                    id: crypto.randomUUID(),
+                    ownerId: "test-user",
+                    checkSum: "deadbeef",
+
+                    path: "blegowe.bin",
+                    relativePath: "blwgo.bin",
+                    lastModified: Date.now(),
+                    lastModifiedDate: new Date().toISOString(),
+                    size: 1024,
+                    fileType: "application/octet-stream",
+                }
+            ]
+
+            await uploadObject([bytes], testMetadata, ObjectType.FILE);
 
             setDialogOpen(false);
             setFiles(null);
@@ -64,7 +105,7 @@ export function UploadDialog() {
                 }}>
             <DialogTrigger asChild>
                 <Button variant="default">
-                    <Upload /> Upload
+                    <Upload/> Upload
                 </Button>
             </DialogTrigger>
 
@@ -75,16 +116,16 @@ export function UploadDialog() {
                 </DialogHeader>
 
                 <Dropzone
-                    accept={{ "*/*": [] }}
+                    accept={{"*/*": []}}
                     maxFiles={10}
                     maxSize={1024 * 1024 * 1024 * 15}
-                    minSize={1024}
+                    minSize={1}
                     onDrop={handleDrop}
                     onError={console.error}
                     src={files}
                 >
-                    <DropzoneEmptyState />
-                    <DropzoneContent />
+                    <DropzoneEmptyState/>
+                    <DropzoneContent/>
                 </Dropzone>
 
                 <div className="flex flex-col space-y-2 mt-3">
@@ -96,3 +137,4 @@ export function UploadDialog() {
         </Dialog>
     );
 }
+

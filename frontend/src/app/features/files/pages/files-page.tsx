@@ -2,7 +2,7 @@ import { FileTable } from "@/app/features/shared/components/tables/file-table.ts
 import { Container } from "../../shared/components/layout/container";
 
 
-export function Home() {
+export function Files() {
     return (
         <div className="flex flex-1 flex-col">
                     <Container>

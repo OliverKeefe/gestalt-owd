@@ -61,11 +61,14 @@ export class RestHandler {
     }
 
     public async handlePost<T, R = unknown>(endpoint: string, payload: T): Promise<R> {
-        const userId = this.userId;
-        const url = `${this.baseURL}/${endpoint}${userId}`;
+        const token = useAuthStore.getState().token;
+        const url = `${this.baseURL}/${endpoint}`;
         const options: RequestInit = {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
             body: JSON.stringify(payload)
         };
 
@@ -74,9 +77,11 @@ export class RestHandler {
         return await response.json();
     }
 
-    public async handleUpload<B extends BodyInit | null | undefined, R = unknown>(endpoint: string, formPayload: B): Promise<R> {
-        const userId = this.userId;
-        const url = `${this.baseURL}/${endpoint}${userId}`;
+    public async handleUpload<R = unknown>(
+        endpoint: string,
+        formPayload: FormData
+    ): Promise<R> {
+        const url = `${this.baseURL}/${endpoint}`;
         const options: RequestInit = {
             method: "POST",
             body: formPayload
