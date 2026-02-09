@@ -1,49 +1,64 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import {useEffect, useMemo, useState} from "react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { UploadDialog } from "@/app/features/shared/components/dialog/upload-dialog.tsx";
-import { Button } from "@/components/ui/button.tsx";
-import { Clock, FolderPlus, Star } from "lucide-react";
-import {type CursorReq, getAllMetadata, type GetAllMetadataReq} from "@/app/features/files/hooks/handler.ts";
-import type {Metadata} from "@/app/features/files/hooks/types.ts";
-import {useAuthStore} from "@/security/auth/authstore/auth-store.ts";
-import {FileIcon, getIconForFile} from "@react-symbols/icons/utils";
-
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
+import { useEffect, useMemo, useState, useOptimistic } from "react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { UploadDialog } from "@/app/features/shared/components/dialog/upload-dialog"
+import { Button } from "@/components/ui/button"
+import { Clock, FolderPlus, Star, EllipsisVertical } from "lucide-react"
+import {
+    type CursorReq,
+    getAllMetadata,
+    type GetAllMetadataReq,
+} from "@/app/features/files/hooks/handler"
+import type { Metadata } from "@/app/features/files/hooks/types"
+import { useAuthStore } from "@/security/auth/authstore/auth-store"
+import { getIconForFile } from "@react-symbols/icons/utils"
 
 export function FileTable() {
-    const cur = useMemo<CursorReq>(() => ({
-        modified_at: null, //"2025-02-13T11:21:04.791Z",
-        id: null, //"c7a1735e-504e-47d9-a8c0-a0e37f7df8b3",
-    }), []);
+    const userId = useAuthStore((s) => s.userId)
 
-    const userId = useAuthStore((s) => s.userId);
+    const cursor = useMemo<CursorReq>(
+        () => ({ modified_at: null, id: null }),
+        []
+    )
 
-    const req = useMemo<GetAllMetadataReq>(() => ({
-        user_id: userId,
-        cursor: cur,
-        limit: 20,
-    }), [cur, userId]);
+    const req = useMemo<GetAllMetadataReq>(
+        () => ({
+            user_id: userId,
+            cursor,
+            limit: 20,
+        }),
+        [userId, cursor]
+    )
 
-    const [files, setFiles] = useState<Metadata[]>([]);
+    const [files, setFiles] = useState<Metadata[]>([])
+    const [optimisticFiles, addOptimisticFiles] = useOptimistic<
+        Metadata[],
+        Metadata[]
+    >(files, (state, action) => [...action, ...state])
+
+    const [selected, setSelected] = useState<string[]>([])
 
     useEffect(() => {
-        if (!userId) return;
-
-        getAllMetadata(req).then((resp) => {
-            setFiles(resp.metadata);
-        });
-    }, [req, userId]);
-
-
-    const [selected, setSelected] = useState<string[]>([]);
+        if (!userId) return
+        getAllMetadata(req).then((resp) => setFiles(resp.metadata))
+    }, [req, userId])
 
     const toggleSelect = (id: string) => {
         setSelected((prev) =>
-            prev.includes(id)
-                ? prev.filter((item) => item !== id)
-                : [...prev, id]
-        );
-    };
+            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+        )
+    }
+
+    const selectAll = (checked: boolean) => {
+        setSelected(checked ? optimisticFiles.map((f) => f.uuid) : [])
+    }
 
     return (
         <div>
@@ -55,7 +70,11 @@ export function FileTable() {
                 </Button>
 
                 <UploadDialog
-                    onUploaded={(newFile) => setFiles((prev) => [...prev, newFile])}
+                    onUploaded={(newFiles) => {
+                        if (!newFiles.length) return
+                        addOptimisticFiles(newFiles)
+                        setFiles((prev) => [...newFiles, ...prev])
+                    }}
                 />
 
                 <Button variant="outline">
@@ -72,24 +91,22 @@ export function FileTable() {
                     <TableRow>
                         <TableHead className="w-[30px]">
                             <Checkbox
-                                checked={selected.length === files.length}
-                                onCheckedChange={(checked) => {
-                                    if (checked) {
-                                        setSelected(files.map((file) => file.uuid));
-                                    } else {
-                                        setSelected([]);
-                                    }
-                                }}
+                                checked={
+                                    optimisticFiles.length > 0 &&
+                                    selected.length === optimisticFiles.length
+                                }
+                                onCheckedChange={(v) => selectAll(v === true)}
                             />
                         </TableHead>
-                        <TableHead className="text-left"></TableHead>
+                        <TableHead className="w-[30px]" />
                         <TableHead>Name</TableHead>
-                        <TableHead className="">Last Modified</TableHead>
+                        <TableHead>Last Modified</TableHead>
+                        <TableHead className="w-[30px]" />
                     </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                    {files.map((file) => (
+                    {optimisticFiles.map((file) => (
                         <TableRow key={file.uuid}>
                             <TableCell>
                                 <Checkbox
@@ -97,16 +114,22 @@ export function FileTable() {
                                     onCheckedChange={() => toggleSelect(file.uuid)}
                                 />
                             </TableCell>
+
                             <TableCell>
-                                <div className={"w-4"}>
-                                    {getIconForFile({
-                                        fileName: file.file_name,
-                                    })}
+                                <div className="w-4">
+                                    {getIconForFile({ fileName: file.file_name })}
                                 </div>
                             </TableCell>
+
                             <TableCell>{file.file_name}</TableCell>
-                            <TableCell >{file.modified_at}</TableCell>
-                            <TableCell >{":"}</TableCell>
+
+                            <TableCell>{formatDate(file.modified_at)}</TableCell>
+
+                            <TableCell>
+                                <Button variant="ghost" size="icon">
+                                    <EllipsisVertical />
+                                </Button>
+                            </TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
