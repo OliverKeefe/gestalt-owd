@@ -18,13 +18,14 @@ import type {Metadata} from "@/app/features/shared/files/metadata.ts";
 
 
 type UploadDialogProps = {
-    onUploaded?: (file: any) => void;
+    onUploaded?: (files: Metadata[]) => void;
 };
 
 const api = new RestHandler(`http://localhost:8081`);
 
 
 export function UploadDialog({onUploaded}: UploadDialogProps) {
+    const [alert, setAlertVisible] = useState(false);
     const [open, setDialogOpen] = useState(false);
     const [files, setFiles] = useState<File[] | null>(null);
 
@@ -50,10 +51,26 @@ export function UploadDialog({onUploaded}: UploadDialogProps) {
             await upload.prepare();
 
             console.log("Sending upload form data...")
+            const optimistic: Metadata[] = files.map((f) => ({
+                uuid: crypto.randomUUID(), // temp ID
+                file_name: f.name,
+                path: "",
+                size: f.size,
+                file_type: f.type,
+                modified_at: new Date().toISOString(),
+                created_at: new Date().toISOString(),
+                owner_id: "", // or userId if available
+                access_to: [],
+                group_id: [],
+                checksum: new Uint8Array(),
+                version: new Date().toISOString(),
+            }));
             const response = await upload.send();
-            console.log(response)
 
-            let bytes = new Uint8Array(100);
+            onUploaded?.(optimistic);
+
+
+            const bytes = new Uint8Array(100);
             crypto.getRandomValues(bytes);
 
             const testMetadata: Metadata[] = [
@@ -102,7 +119,7 @@ export function UploadDialog({onUploaded}: UploadDialogProps) {
                     accept={{"*/*": []}}
                     maxFiles={10}
                     maxSize={1024 * 1024 * 1024 * 15}
-                    minSize={1024}
+                    minSize={1}
                     onDrop={handleDrop}
                     onError={console.error}
                     src={files}
@@ -120,3 +137,4 @@ export function UploadDialog({onUploaded}: UploadDialogProps) {
         </Dialog>
     );
 }
+
