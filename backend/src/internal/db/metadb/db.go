@@ -6,11 +6,19 @@ import (
 	"log"
 	"os"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type Pool interface {
+	Begin(context.Context) (pgx.Tx, error)
+	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
+	Query(context.Context, string, ...any) (pgx.Rows, error)
+}
+
 type MetadataDatabase struct {
-	Pool *pgxpool.Pool
+	Pool Pool
 }
 
 func New(ctx context.Context, envVar string) (*MetadataDatabase, error) {
