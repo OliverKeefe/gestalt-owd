@@ -19,8 +19,21 @@ import {
 import type { Metadata } from "@/app/features/files/hooks/types"
 import { useAuthStore } from "@/security/auth/authstore/auth-store"
 import { getIconForFile } from "@react-symbols/icons/utils"
+import {DialogTrigger} from "@/components/ui/dialog.tsx";
+import {FileDialog} from "@/app/features/files/components/dialogs/file-dialog.tsx";
+import {FileDropdown} from "@/app/features/files/components/dropdowns/file-dropdown.tsx";
+
+
 
 export function FileTable() {
+    const [dialogOpen, setDialogOpen] = useState(false)
+    const [activeFile, setActiveFile] = useState<Metadata | null>(null)
+
+    function openDialog(file: Metadata) {
+        setActiveFile(file)
+        setDialogOpen(true)
+    }
+
     const userId = useAuthStore((s) => s.userId)
 
     const cursor = useMemo<CursorReq>(
@@ -88,7 +101,7 @@ export function FileTable() {
                 </Button>
             </nav>
 
-            <Table className="mt-2">
+            <Table className="mt-2 w-full table-fixed">
                 <TableHeader>
                     <TableRow>
                         <TableHead className="w-[30px]">
@@ -101,9 +114,9 @@ export function FileTable() {
                             />
                         </TableHead>
                         <TableHead className="w-[30px]" />
-                        <TableHead>Name</TableHead>
-                        <TableHead>Last Modified</TableHead>
-                        <TableHead className="w-[30px]" />
+                        <TableHead className={"full"}>Name</TableHead>
+                        <TableHead className={"w-[150px]"}>Last Modified</TableHead>
+                        <TableHead className="w-[50px]" />
                     </TableRow>
                 </TableHeader>
 
@@ -117,25 +130,41 @@ export function FileTable() {
                                 />
                             </TableCell>
 
-                            <TableCell>
+                            <TableCell onClick={() => openDialog(file)}>
                                 <div className="w-4">
                                     {getIconForFile({ fileName: file.file_name })}
                                 </div>
                             </TableCell>
 
-                            <TableCell>{file.file_name}</TableCell>
+                            <TableCell onClick={() => openDialog(file)}>
+                                <p className="truncate whitespace-nowrap overflow-hidden">
+                                    {file.file_name}
+                                </p>
+                            </TableCell>
 
-                            <TableCell>{formatDate(file.modified_at)}</TableCell>
+                            <TableCell onClick={() => openDialog(file)}>
+                                <p className="truncate whitespace-nowrap overflow-hidden">
+                                    {formatDate(file.modified_at)}
+                                </p>
+                            </TableCell>
 
-                            <TableCell>
-                                <Button variant="ghost" size="icon">
-                                    <EllipsisVertical />
-                                </Button>
+                            <TableCell className={"w-[44px]"}>
+                                    <FileDropdown />
                             </TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
             </Table>
+            {activeFile && (
+                <FileDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    metadata={activeFile}
+                    ipfsLink=""
+                    spaceName=""
+                    spaceDid=""
+                />
+            )}
         </div>
     )
 }
