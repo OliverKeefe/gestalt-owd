@@ -1,43 +1,30 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
-import { initKeycloak } from '@/security/auth/keycloak/keycloak.ts';
-import { useAuthStore } from "@/security/auth/authstore/auth-store.ts";
+    import { StrictMode } from 'react'
+    import { createRoot } from 'react-dom/client'
+    import './index.css'
+    import App from './App.tsx'
+    import { initKeycloak } from '@/security/auth/keycloak/keycloak.ts';
+    import { useAuthStore } from "@/security/auth/authstore/auth-store.ts";
 
-const rootElement = document.getElementById("root")!;
-rootElement.innerHTML = `
-    <div class="w-18rem h-screen flex items-center justify-center">
-        <img 
-         src="/media/spinner.svg"
-         alt="loading..." 
-         class="w-[100px] h-[100px] invert-0 dark:invert"
-         />
-    </div>
-`;
+    const root = createRoot(document.getElementById('root')!);
 
-async function auth() {
-    const kc = await initKeycloak();
+    async function bootstrap() {
+        const kc = await initKeycloak();
 
-    if (kc) {
+        // If Keycloak determines user not signed in, redirect to login page.
+        // The spinner in index.html stays visible until the browser actually leaves the page.
+        if (!kc || !kc.authenticated) {
+            kc?.login();
+            return;
+        }
+
         useAuthStore.getState().setToken(kc.token ?? null);
-        console.log('Token:', kc.token);
-        console.log('User:', kc.tokenParsed?.preferred_username);
+        useAuthStore.getState().setUserId(kc.tokenParsed?.sub ?? null);
+
+        root.render(
+            <StrictMode>
+                <App isAuthenticated={true} />
+            </StrictMode>
+        );
     }
 
-    if (kc?.tokenParsed) {
-        const userId = kc.tokenParsed.sub;
-        useAuthStore.getState().setUserId(userId ?? null);
-    }
-
-    const isAuthenticated = !!kc;
-
-    createRoot(document.getElementById('root')!).render(
-        <StrictMode>
-            <App isAuthenticated={isAuthenticated}/>
-        </StrictMode>,
-    );
-
-}
-
-auth();
+    bootstrap();

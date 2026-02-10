@@ -11,18 +11,18 @@ import (
 
 // Metadata Model - need ContentCID string for IPFS
 type MetaData struct {
-	ID         uuid.UUID
-	FileName   string
-	Path       string
-	Size       uint64
-	FileType   string
-	ModifiedAt time.Time
-	UploadedAt time.Time
-	Owner      uuid.UUID
-	AccessTo   []uuid.UUID
-	Group      []uuid.UUID
-	CheckSum   []byte
-	Version    time.Time
+	ID         uuid.UUID   `json:"uuid"`
+	FileName   string      `json:"file_name"`
+	Path       string      `json:"path"`
+	Size       uint64      `json:"size"`
+	FileType   string      `json:"file_type"`
+	ModifiedAt time.Time   `json:"modified_at"`
+	UploadedAt time.Time   `json:"created_at"`
+	Owner      uuid.UUID   `json:"owner_id"`
+	AccessTo   []uuid.UUID `json:"access_to"`
+	Group      []uuid.UUID `json:"group_id"`
+	CheckSum   []byte      `json:"checksum"`
+	Version    time.Time   `json:"version"`
 }
 
 func (m *MetaData) ToResponse() MetaDataResponse {

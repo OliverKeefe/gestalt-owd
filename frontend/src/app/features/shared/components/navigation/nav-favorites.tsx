@@ -22,6 +22,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar.tsx"
+import {getIconForFile } from "@react-symbols/icons/utils";
+import { FileIcon } from "@react-symbols/icons/utils";
 
 export function NavFavorites({
   favorites,
@@ -40,12 +42,18 @@ export function NavFavorites({
       <SidebarMenu>
         {favorites.map((item) => (
           <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
-              <a href={item.url} title={item.name}>
-                <span>{item.emoji}</span>
-                <span>{item.name}</span>
-              </a>
-            </SidebarMenuButton>
+              <SidebarMenuButton asChild className="min-w-0">
+                  <a href={item.url} title={item.name} className="flex items-center gap-2 min-w-0">
+                        <span className="shrink-0">
+                          <FileIcon
+                              fileName={item.name}
+                              autoAssign={true}
+                              className="size-4"
+                          />
+                        </span>
+                      <span className="min-w-0 flex-1 truncate">{item.name}</span>
+                  </a>
+              </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuAction showOnHover>
