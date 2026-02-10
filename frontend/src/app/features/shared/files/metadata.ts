@@ -43,13 +43,16 @@ export async function extractMetadata(file: File): Promise<Metadata> {
         locateFile: (path) => `/mediainfo/dist/${path}`,
     })
 
-    const result = await mediaInfo.analyzeData(
-        () => file.size,
-        async (chunkSize, offset) => {
-            const buffer = await file.slice(offset, offset + chunkSize).arrayBuffer()
-            return new Uint8Array(buffer)
+    const [result, checksum] = await Promise.all([
+        mediaInfo.analyzeData(
+            () => file.size,
+            async (chunkSize, offset) => {
+                const buffer = await file.slice(offset, offset + chunkSize).arrayBuffer()
+                return new Uint8Array(buffer)
         }
-    )
+        ),
+        getCheckSum(file)
+    ]);
 
     mediaInfo.close()
 
@@ -59,6 +62,8 @@ export async function extractMetadata(file: File): Promise<Metadata> {
 
     //const media = JSON.parse(result);
 
+    console.log('Metadata:', result);
+    console.log('SHA-256:', checksum);
     return {
         path: file.name,
         relativePath: file.webkitRelativePath || file.name,
@@ -70,7 +75,27 @@ export async function extractMetadata(file: File): Promise<Metadata> {
         //media,
 
         id: crypto.randomUUID(),
-        ownerId: crypto.randomUUID(),
-        checkSum: "a".repeat(256),
+        ownerId: "29b6f168-03f6-4801-81d5-603b52f2c932",
+        checkSum: checksum
     }
+}
+
+function generateFileId(): string {
+    //TODO: Check UUID exist in db.
+    return crypto.randomUUID();
+}
+
+function getOwnerId(): string {
+    //TODO: Check UUID exist in db.
+    return crypto.randomUUID();
+}
+
+// TODO: Compute this in backend instead, bad security and also >100mb browser dies.
+async function getCheckSum(file: File): Promise<string> {
+    const arrayBuffer = await file.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+
+    return Array.from(new Uint8Array(hashBuffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
 }
