@@ -30,11 +30,6 @@ export function AppTopbar({ children, className, ...props }: AppTopbarProps) {
             <div className="ml-auto flex items-center gap-2">
                 <ModeToggle />
                 <SettingsToggle />
-                <Avatar>
-                    <AvatarImage>
-                    </AvatarImage>
-                    <AvatarFallback>OK</AvatarFallback>
-                </Avatar>
             </div>
         </header>
     )
