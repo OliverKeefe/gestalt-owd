@@ -27,3 +27,9 @@ export async function getAllMetadata(request: GetAllMetadataReq): Promise<GetAll
             metadata: Array.isArray(resp.data) ? resp.data : (Array.isArray(resp.Data) ? resp.Data : []),
         };
 }
+
+export async function uploadFiles(files: File[]) {
+    const form = new UploadForm(files);
+    await form.prepare();
+    return await form.send();
+}
