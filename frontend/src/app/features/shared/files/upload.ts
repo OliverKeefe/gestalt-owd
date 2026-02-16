@@ -45,33 +45,32 @@ export class UploadForm {
         })
     }
 
-    public async send(): Promise<Response> {
+    public async send(): Promise<any> {
         this.buildFormData();
-        const url = "http://localhost:8081/api/files/upload"
 
-
-
+        const url = "http://localhost:8081/api/files/upload";
         const token = useAuthStore.getState().token;
-        console.log(token);
 
-        //const url = `${this.baseURL}/${endpoint}`;
-        const options: RequestInit = {
+        const response = await fetch(url, {
+            method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
             },
-            method: "POST",
-            body: this.formData};
+            body: this.formData,
+        });
 
-        const response = await fetch(url, options);
         const contentType = response.headers.get("content-type");
 
-        if (contentType && contentType.includes("application/json")) {
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || `Upload failed (${response.status})`);
+        }
+
+        if (contentType?.includes("application/json")) {
             return await response.json();
         }
 
-        // Might be better off returning null here, need to rethink.
-        await this.handleFailedUpload(response);
-        return await response.json();
+        return null;
     }
 
     private async handleFailedUpload(response: Response): Promise<void> {
