@@ -72,12 +72,16 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) ([]data.MetaDat
 			// decode + build metadata
 			var decodedRequest multipartMetadata
 			if err := json.NewDecoder(part).Decode(&decodedRequest); err != nil {
-				return err
+				return nil, err
 			}
 
-			ownerID, err := uuid.Parse(decodedRequest.OwnerID)
+			userId, ok := auth.UserIDFromCtx(r.Context())
+			if !ok {
+				return nil, errors.New("could not get userID from context")
+			}
+			ownerID, err := uuid.Parse(userId)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			metadataByID[idStr] = data.MetaData{
@@ -164,8 +168,17 @@ func (svc *Service) FindMetadata(ctx context.Context, request data.FindMetadataR
 }
 
 func (svc *Service) Delete(ctx context.Context, request data.DeleteRequest) error {
+	userID, ok := auth.UserIDFromCtx(ctx)
+	if !ok {
+		return errors.New("unable to get userID from context")
+	}
 
-	err := svc.repo.DeleteMetadata(ctx, request.ID, request.OwnerID)
+	ownerID, err := uuid.Parse(userID)
+	if err != nil {
+		log.Printf("unable to parse userID string to uuid")
+	}
+
+	err = svc.repo.DeleteMetadata(ctx, request.ID, ownerID)
 	if err != nil {
 		log.Printf("could not delete file metadata, %v", err)
 		return err
@@ -175,7 +188,17 @@ func (svc *Service) Delete(ctx context.Context, request data.DeleteRequest) erro
 }
 
 func (svc *Service) MoveToRubbish(ctx context.Context, request data.DeleteRequest) error {
-	err := svc.repo.MarkForDeletion(ctx, request.ID, request.OwnerID)
+	userID, ok := auth.UserIDFromCtx(ctx)
+	if !ok {
+		return errors.New("unable to get userID from context")
+	}
+
+	ownerID, err := uuid.Parse(userID)
+	if err != nil {
+		log.Printf("unable to parse userID string to uuid")
+	}
+
+	err = svc.repo.MarkForDeletion(ctx, request.ID, ownerID)
 	if err != nil {
 		log.Printf("unable to move file or metadata to rubbish bin, %v", err)
 		return err
