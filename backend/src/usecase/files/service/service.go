@@ -1,11 +1,13 @@
 package files
 
 import (
+	"backend/src/internal/auth"
 	data "backend/src/usecase/files/data"
 	repository "backend/src/usecase/files/repository"
 	"context"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -43,10 +45,10 @@ type multipartMetadata struct {
 	CheckSum []byte `json:"checkSum"`
 }
 
-func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
+func (svc *Service) Upload(r *http.Request, ctx context.Context) ([]data.MetaData, error) {
 	mr, err := r.MultipartReader()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	metadataByID := make(map[string]data.MetaData)
@@ -57,7 +59,7 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
 			break
 		}
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		name := part.FormName()
@@ -102,7 +104,7 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
 				io.TeeReader(part, hash),
 				part.FileName(),
 			); err != nil {
-				return err
+				return nil, err
 			}
 			md := metadataByID[idStr]
 			md.CheckSum = hash.Sum(nil)
@@ -110,13 +112,16 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
 		}
 	}
 	// Persist file metadata
+	var newMetadata []data.MetaData
 	for _, md := range metadataByID {
-		if err := svc.repo.SaveMetaData(md, ctx); err != nil {
-			return err
+		newMd, err := svc.repo.SaveMetaData(md, ctx)
+		if err != nil {
+			return nil, err
 		}
+		newMetadata = append(newMetadata, newMd)
 	}
 
-	return nil
+	return newMetadata, nil
 }
 
 func (svc *Service) GetAll(ctx context.Context, request data.GetAllMetadataRequest) ([]data.MetaDataResponse, error) {
