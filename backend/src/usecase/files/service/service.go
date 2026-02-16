@@ -1,11 +1,13 @@
 package files
 
 import (
+	"backend/src/internal/auth"
 	data "backend/src/usecase/files/data"
 	repository "backend/src/usecase/files/repository"
 	"context"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -43,10 +45,10 @@ type multipartMetadata struct {
 	CheckSum []byte `json:"checkSum"`
 }
 
-func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
+func (svc *Service) Upload(r *http.Request, ctx context.Context) ([]data.MetaData, error) {
 	mr, err := r.MultipartReader()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	metadataByID := make(map[string]data.MetaData)
@@ -57,7 +59,7 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
 			break
 		}
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		name := part.FormName()
@@ -70,12 +72,16 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
 			// decode + build metadata
 			var decodedRequest multipartMetadata
 			if err := json.NewDecoder(part).Decode(&decodedRequest); err != nil {
-				return err
+				return nil, err
 			}
 
-			ownerID, err := uuid.Parse(decodedRequest.OwnerID)
+			userId, ok := auth.UserIDFromCtx(r.Context())
+			if !ok {
+				return nil, errors.New("could not get userID from context")
+			}
+			ownerID, err := uuid.Parse(userId)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			metadataByID[idStr] = data.MetaData{
@@ -102,7 +108,7 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
 				io.TeeReader(part, hash),
 				part.FileName(),
 			); err != nil {
-				return err
+				return nil, err
 			}
 			md := metadataByID[idStr]
 			md.CheckSum = hash.Sum(nil)
@@ -110,13 +116,16 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) error {
 		}
 	}
 	// Persist file metadata
+	var newMetadata []data.MetaData
 	for _, md := range metadataByID {
-		if err := svc.repo.SaveMetaData(md, ctx); err != nil {
-			return err
+		newMd, err := svc.repo.SaveMetaData(md, ctx)
+		if err != nil {
+			return nil, err
 		}
+		newMetadata = append(newMetadata, newMd)
 	}
 
-	return nil
+	return newMetadata, nil
 }
 
 func (svc *Service) GetAll(ctx context.Context, request data.GetAllMetadataRequest) ([]data.MetaDataResponse, error) {
@@ -159,8 +168,17 @@ func (svc *Service) FindMetadata(ctx context.Context, request data.FindMetadataR
 }
 
 func (svc *Service) Delete(ctx context.Context, request data.DeleteRequest) error {
+	userID, ok := auth.UserIDFromCtx(ctx)
+	if !ok {
+		return errors.New("unable to get userID from context")
+	}
 
-	err := svc.repo.DeleteMetadata(ctx, request.ID, request.OwnerID)
+	ownerID, err := uuid.Parse(userID)
+	if err != nil {
+		log.Printf("unable to parse userID string to uuid")
+	}
+
+	err = svc.repo.DeleteMetadata(ctx, request.ID, ownerID)
 	if err != nil {
 		log.Printf("could not delete file metadata, %v", err)
 		return err
@@ -170,7 +188,17 @@ func (svc *Service) Delete(ctx context.Context, request data.DeleteRequest) erro
 }
 
 func (svc *Service) MoveToRubbish(ctx context.Context, request data.DeleteRequest) error {
-	err := svc.repo.MarkForDeletion(ctx, request.ID, request.OwnerID)
+	userID, ok := auth.UserIDFromCtx(ctx)
+	if !ok {
+		return errors.New("unable to get userID from context")
+	}
+
+	ownerID, err := uuid.Parse(userID)
+	if err != nil {
+		log.Printf("unable to parse userID string to uuid")
+	}
+
+	err = svc.repo.MarkForDeletion(ctx, request.ID, ownerID)
 	if err != nil {
 		log.Printf("unable to move file or metadata to rubbish bin, %v", err)
 		return err
