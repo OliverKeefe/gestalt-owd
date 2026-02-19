@@ -10,6 +10,7 @@ import {
 import { useAuthStore } from "@/security/auth/authstore/auth-store";
 import { RestHandler } from "@/app/features/shared/api/rest/rest-handler";
 import { ConfirmAlertDialog } from "@/app/features/shared/components/alerts/confirm-alert";
+import {enqueueSnackbar} from "notistack";
 
 interface FileDropdownProps {
     fileId: string;
@@ -38,9 +39,14 @@ function FileDropdown({ fileId, onDeleted }: FileDropdownProps) {
             });
 
             onDeleted();
+            const message = "File: " + fileId + " deleted successfully.";
+            enqueueSnackbar(message, { autoHideDuration: 1000 })
+
 
         } catch (error) {
             console.error("Failed to delete file on server:", error);
+            const message = "File: " + fileId + " could not be deleted.";
+            enqueueSnackbar(message, { autoHideDuration: 5000 })
         }
     }
 
