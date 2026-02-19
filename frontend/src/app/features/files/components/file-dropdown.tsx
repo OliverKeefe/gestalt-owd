@@ -9,13 +9,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuthStore } from "@/security/auth/authstore/auth-store";
 import { RestHandler } from "@/app/features/shared/api/rest/rest-handler";
+import { ConfirmAlertDialog } from "@/app/features/shared/components/alerts/confirm-alert";
 
 interface FileDropdownProps {
     fileId: string;
     onDeleted: () => void;
 }
 
-export function FileDropdown({ fileId, onDeleted }: FileDropdownProps) {
+function FileDropdown({ fileId, onDeleted }: FileDropdownProps) {
     const userId = useAuthStore((s) => s.userId);
 
     async function handleDelete(e: React.MouseEvent) {
@@ -56,14 +57,19 @@ export function FileDropdown({ fileId, onDeleted }: FileDropdownProps) {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                    className="cursor-pointer text-destructive focus:text-destructive"
-                    onClick={handleDelete}
+                <ConfirmAlertDialog
+                    onConfirm={handleDelete}
+                    message={"This file will be removed, permanently."}
+                    icon={Trash2}
                 >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    <span>Delete</span>
-                </DropdownMenuItem>
-
+                    <DropdownMenuItem
+                        className="cursor-pointer text-destructive focus:text-destructive"
+                        onSelect={(e) => e.preventDefault()}
+                    >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        <span>Delete</span>
+                    </DropdownMenuItem>
+                </ConfirmAlertDialog>
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem className="cursor-pointer">
@@ -79,3 +85,5 @@ export function FileDropdown({ fileId, onDeleted }: FileDropdownProps) {
         </DropdownMenu>
     );
 }
+
+export default FileDropdown
