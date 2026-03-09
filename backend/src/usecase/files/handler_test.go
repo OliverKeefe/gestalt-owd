@@ -1,8 +1,15 @@
 package files
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type mockService struct{}
@@ -29,4 +36,19 @@ func (m *mockService) MoveToRubbish(ctx context.Context, request DeleteRequest) 
 
 func (m *mockService) GetAll(ctx context.Context, request GetAllMetadataRequest) ([]MetaDataResponse, error) {
 	return []MetaDataResponse{}, nil
+}
+
+func TestHandler_GetAllInvalidRequest(t *testing.T) {
+	h := Handler{svc: mockSvc}
+	req := httptest.NewRequest(http.MethodPost, "/api/files/get-all", nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer token")
+
+	recorder := httptest.NewRecorder()
+
+	h.GetAll(recorder, req)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected status: 400, got %d", recorder.Code)
+	}
 }
