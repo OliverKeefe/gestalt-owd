@@ -85,3 +85,30 @@ func TestHandler_GetAll(t *testing.T) {
 		t.Fatalf("expected 200, got: %v", recorder.Code)
 	}
 }
+
+func TestHandler_Delete(t *testing.T) {
+	h := Handler{svc: mockSvc}
+
+	payload := DeleteRequest{ID: uuid.New()}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatal("invalid test json payload")
+	}
+
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/api/files/delete",
+		bytes.NewReader(body),
+	)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer token")
+
+	recorder := httptest.NewRecorder()
+
+	h.Delete(recorder, req)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got: %v", recorder.Code)
+	}
+
+}
