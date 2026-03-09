@@ -52,3 +52,36 @@ func TestHandler_GetAllInvalidRequest(t *testing.T) {
 		t.Fatalf("expected status: 400, got %d", recorder.Code)
 	}
 }
+
+func TestHandler_GetAll(t *testing.T) {
+	h := &Handler{svc: mockSvc}
+
+	payload := GetAllMetadataRequest{
+		UserID: uuid.New(),
+		Cursor: &MetadataCursor{
+			ModifiedAt: time.Now(),
+			ID:         uuid.New(),
+		},
+		Limit: 20,
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatal("invalid test json payload")
+	}
+
+	var req = httptest.NewRequest(
+		http.MethodPost,
+		"/api/files/get-all",
+		bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer token")
+
+	recorder := httptest.NewRecorder()
+
+	h.GetAll(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got: %v", recorder.Code)
+	}
+}
