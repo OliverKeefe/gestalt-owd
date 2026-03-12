@@ -39,4 +39,9 @@ func RegisterFileRoutes(
 		"POST /api/files/get-all",
 		getAllMetadata,
 	)
+	deleteFile := route(a, h.Delete)
+	mux.Handle(
+		"POST /api/files/delete",
+		deleteFile,
+	)
 }
