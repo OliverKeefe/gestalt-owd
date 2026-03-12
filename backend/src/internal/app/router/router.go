@@ -4,9 +4,8 @@ import (
 	"backend/src/internal/auth"
 	"backend/src/internal/db/metadb"
 	"backend/src/internal/middleware"
-	fileshandler "backend/src/usecase/files/handler"
-	filesrepo "backend/src/usecase/files/repository"
-	filesvc "backend/src/usecase/files/service"
+	filesvc "backend/src/usecase/files"
+	"context"
 	"net/http"
 )
 
@@ -21,11 +20,11 @@ func RegisterFileRoutes(
 	a *auth.Authenticator,
 	db *metadb.MetadataDatabase,
 ) {
-	repo := filesrepo.NewRepository(db)
+	repo := filesvc.NewRepository(db.Pool)
 	svc := filesvc.NewService(repo)
-	h := fileshandler.NewHandler(svc)
+	h := filesvc.NewHandler(svc)
 
-	upload := protected(a, h.Upload)
+	upload := route(a, h.Upload)
 	mux.Handle(
 		"POST /api/files/upload",
 		upload,
