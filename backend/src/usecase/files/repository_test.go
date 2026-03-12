@@ -1,8 +1,6 @@
 package files
 
 import (
-	"backend/src/internal/db/metadb"
-	data "backend/src/usecase/files/data"
 	"context"
 	"testing"
 	"time"
@@ -11,7 +9,7 @@ import (
 	"github.com/pashagolub/pgxmock/v4"
 )
 
-// Testcase for GetAllFiles repository method without pagination cursor.
+// Testcase for FindAllMetadata repository method without pagination cursor.
 func TestRepository_GetAllFiles_NoCursor(t *testing.T) {
 	mock, err := pgxmock.NewPool()
 	if err != nil {
@@ -21,7 +19,7 @@ func TestRepository_GetAllFiles_NoCursor(t *testing.T) {
 
 	ctx := context.Background()
 
-	repo := &Repository{db: &metadb.MetadataDatabase{Pool: mock}}
+	repo := &Repository{db: mock}
 
 	userID := uuid.New()
 	limit := 2
@@ -48,7 +46,7 @@ func TestRepository_GetAllFiles_NoCursor(t *testing.T) {
 		WithArgs(userID, limit).
 		WillReturnRows(rows)
 
-	res, err := repo.GetAllFiles(ctx, data.GetAllMetadataRequest{
+	res, err := repo.FindAllMetadata(ctx, GetAllMetadataRequest{
 		UserID: userID,
 		Limit:  limit,
 	})
@@ -64,7 +62,7 @@ func TestRepository_GetAllFiles_NoCursor(t *testing.T) {
 	}
 }
 
-// Testcase for GetAllFiles repository method with pagination cursor.
+// Testcase for FindAllMetadata repository method with pagination cursor.
 func TestRepository_GetAllFiles_Cursor(t *testing.T) {
 	mock, err := pgxmock.NewPool()
 	if err != nil {
@@ -73,13 +71,13 @@ func TestRepository_GetAllFiles_Cursor(t *testing.T) {
 
 	ctx := context.Background()
 
-	repo := &Repository{db: &metadb.MetadataDatabase{Pool: mock}}
+	repo := &Repository{db: mock}
 
 	userID := uuid.New()
 	cursorID := uuid.New()
 	now := time.Now()
 	limit := 2
-	cur := data.MetadataCursor{
+	cur := MetadataCursor{
 		ModifiedAt: now,
 		ID:         cursorID,
 	}
@@ -121,7 +119,7 @@ func TestRepository_GetAllFiles_Cursor(t *testing.T) {
 		WithArgs(userID, cur.ModifiedAt, cur.ID, limit).
 		WillReturnRows(rows)
 
-	res, err := repo.GetAllFiles(ctx, data.GetAllMetadataRequest{
+	res, err := repo.FindAllMetadata(ctx, GetAllMetadataRequest{
 		UserID: userID,
 		Cursor: &cur,
 		Limit:  limit,

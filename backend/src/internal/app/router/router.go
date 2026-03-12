@@ -4,15 +4,14 @@ import (
 	"backend/src/internal/auth"
 	"backend/src/internal/db/metadb"
 	"backend/src/internal/middleware"
-	fileshandler "backend/src/usecase/files/handler"
-	filesrepo "backend/src/usecase/files/repository"
-	filesvc "backend/src/usecase/files/service"
+	filesvc "backend/src/usecase/files"
+	"context"
 	"net/http"
 )
 
 var (
-	protected = func(a *auth.Authenticator, h http.HandlerFunc) http.Handler {
-		return middleware.Protect(a, h)
+	route = func(a *auth.Authenticator, h http.HandlerFunc) http.Handler {
+		return middleware.Protect(context.Background(), a, h)
 	}
 )
 
@@ -21,23 +20,28 @@ func RegisterFileRoutes(
 	a *auth.Authenticator,
 	db *metadb.MetadataDatabase,
 ) {
-	repo := filesrepo.NewRepository(db)
+	repo := filesvc.NewRepository(db.Pool)
 	svc := filesvc.NewService(repo)
-	h := fileshandler.NewHandler(svc)
+	h := filesvc.NewHandler(svc)
 
-	upload := protected(a, h.Upload)
+	upload := route(a, h.Upload)
 	mux.Handle(
 		"POST /api/files/upload",
 		upload,
 	)
-	findMetadata := protected(a, h.FindMetadata)
+	findMetadata := route(a, h.FindMetadata)
 	mux.Handle(
 		"POST /api/files/find",
 		findMetadata,
 	)
-	getAllMetadata := protected(a, h.GetAll)
+	getAllMetadata := route(a, h.GetAll)
 	mux.Handle(
 		"POST /api/files/get-all",
 		getAllMetadata,
+	)
+	deleteFile := route(a, h.Delete)
+	mux.Handle(
+		"POST /api/files/delete",
+		deleteFile,
 	)
 }
