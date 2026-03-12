@@ -52,6 +52,18 @@ type AccessMetadata struct {
 	GroupAccess []uuid.UUID `json:"group_access"`
 }
 
+type FileMetadata struct {
+	ID         uuid.UUID `json:"uuid"`
+	FileName   string    `json:"file_name"`
+	Path       string    `json:"path"`
+	Size       uint64    `json:"size"`
+	FileType   string    `json:"file_type"`
+	ModifiedAt time.Time `json:"modified_at"`
+	UploadedAt time.Time `json:"created_at"`
+	CheckSum   []byte    `json:"checksum"`
+	Version    time.Time `json:"version"`
+}
+
 func (m *MetaData) ToResponse() MetaDataResponse {
 	return MetaDataResponse{
 		ID:         m.ID,
