@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	protected = func(a *auth.Authenticator, h http.HandlerFunc) http.Handler {
-		return middleware.Protect(a, h)
+	route = func(a *auth.Authenticator, h http.HandlerFunc) http.Handler {
+		return middleware.Protect(context.Background(), a, h)
 	}
 )
 
@@ -29,12 +29,12 @@ func RegisterFileRoutes(
 		"POST /api/files/upload",
 		upload,
 	)
-	findMetadata := protected(a, h.FindMetadata)
+	findMetadata := route(a, h.FindMetadata)
 	mux.Handle(
 		"POST /api/files/find",
 		findMetadata,
 	)
-	getAllMetadata := protected(a, h.GetAll)
+	getAllMetadata := route(a, h.GetAll)
 	mux.Handle(
 		"POST /api/files/get-all",
 		getAllMetadata,
