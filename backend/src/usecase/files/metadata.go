@@ -45,6 +45,13 @@ const (
 	Public Visibility = iota
 	Private
 )
+
+type AccessMetadata struct {
+	OwnerID     uuid.UUID   `json:"owner_id"`
+	SharedWith  []uuid.UUID `json:"shared_with"`
+	GroupAccess []uuid.UUID `json:"group_access"`
+}
+
 func (m *MetaData) ToResponse() MetaDataResponse {
 	return MetaDataResponse{
 		ID:         m.ID,
