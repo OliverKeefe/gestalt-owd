@@ -2,18 +2,26 @@ package files
 
 import (
 	"backend/src/internal/api/message"
-	data "backend/src/usecase/files/data"
-	service "backend/src/usecase/files/service"
+	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 )
 
+type service interface {
+	Upload(ctx context.Context, r *http.Request) ([]MetaData, error)
+	FindAllMetadata(ctx context.Context, request GetAllMetadataRequest) ([]MetaDataResponse, error)
+	FindMetadata(ctx context.Context, request FindMetadataRequest) ([]MetaData, error)
+	Delete(ctx context.Context, request DeleteRequest) error
+	MoveToRubbish(ctx context.Context, request DeleteRequest) error
+}
+
 type Handler struct {
-	svc *service.Service
+	svc service
 }
 
 // Constructor
-func NewHandler(svc *service.Service) *Handler {
+func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
@@ -21,6 +29,7 @@ func NewHandler(svc *service.Service) *Handler {
 // Endpoint api/files/upload
 func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	svc := h.svc
+	var newMetadata []MetaData
 
 	r.Body = http.MaxBytesReader(w, r.Body, 100<<20)
 
