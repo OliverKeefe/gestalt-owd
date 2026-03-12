@@ -9,6 +9,12 @@ import (
 	"github.com/google/uuid"
 )
 
+type Metadata struct {
+	File   FileMetadata
+	Access AccessMetadata
+	Ipfs   IPFSMetadata
+}
+
 // Metadata Model - need ContentCID string for IPFS
 type MetaData struct {
 	ID         uuid.UUID   `json:"uuid"`
