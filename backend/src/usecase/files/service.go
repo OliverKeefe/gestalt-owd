@@ -2,8 +2,6 @@ package files
 
 import (
 	"backend/src/internal/auth"
-	data "backend/src/usecase/files/data"
-	repository "backend/src/usecase/files/repository"
 	"context"
 	"crypto/sha256"
 	"encoding/json"
@@ -17,14 +15,23 @@ import (
 	"github.com/google/uuid"
 )
 
+type repository interface {
+	SaveMetaData(ctx context.Context, meta MetaData) (MetaData, error) //TODO: Change order of params
+	SaveFileData(basePath string, rdr io.Reader, filename string) error
+	FindMetadata(ctx context.Context, model MetaData) ([]MetaData, error)
+	DeleteMetadata(ctx context.Context, id uuid.UUID, ownerId uuid.UUID) error
+	FindAllMetadata(ctx context.Context, req GetAllMetadataRequest) ([]MetaData, error)
+	MarkForDeletion(ctx context.Context, id uuid.UUID, id2 uuid.UUID) error
+}
+
 type Service struct {
-	repo *repository.Repository
+	repo repository
 }
 
 // NewService constructor for new Service (UploadService).
-func NewService(fileRepo *repository.Repository) *Service {
+func NewService(repo repository) *Service {
 	return &Service{
-		repo: fileRepo,
+		repo: repo,
 	}
 }
 
@@ -45,13 +52,13 @@ type multipartMetadata struct {
 	CheckSum []byte `json:"checkSum"`
 }
 
-func (svc *Service) Upload(r *http.Request, ctx context.Context) ([]data.MetaData, error) {
+func (svc *Service) Upload(ctx context.Context, r *http.Request) ([]MetaData, error) {
 	mr, err := r.MultipartReader()
 	if err != nil {
 		return nil, err
 	}
 
-	metadataByID := make(map[string]data.MetaData)
+	metadataByID := make(map[string]MetaData)
 
 	for {
 		part, err := mr.NextPart()
@@ -84,7 +91,7 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) ([]data.MetaDat
 				return nil, err
 			}
 
-			metadataByID[idStr] = data.MetaData{
+			metadataByID[idStr] = MetaData{
 				ID:         uuid.MustParse(idStr),
 				FileName:   decodedRequest.RelativePath,
 				Path:       decodedRequest.Path,
@@ -116,9 +123,9 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) ([]data.MetaDat
 		}
 	}
 	// Persist file metadata
-	var newMetadata []data.MetaData
+	var newMetadata []MetaData
 	for _, md := range metadataByID {
-		newMd, err := svc.repo.SaveMetaData(md, ctx)
+		newMd, err := svc.repo.SaveMetaData(ctx, md)
 		if err != nil {
 			return nil, err
 		}
@@ -128,14 +135,14 @@ func (svc *Service) Upload(r *http.Request, ctx context.Context) ([]data.MetaDat
 	return newMetadata, nil
 }
 
-func (svc *Service) GetAll(ctx context.Context, request data.GetAllMetadataRequest) ([]data.MetaDataResponse, error) {
+func (svc *Service) FindAllMetadata(ctx context.Context, request GetAllMetadataRequest) ([]MetaDataResponse, error) {
 	var (
 		repo     = svc.repo
-		files    []data.MetaData
-		response []data.MetaDataResponse
+		files    []MetaData
+		response []MetaDataResponse
 	)
 
-	files, err := repo.GetAllFiles(ctx, request)
+	files, err := repo.FindAllMetadata(ctx, request)
 	if err != nil {
 		log.Printf("unable to get all files for user: %s, %v ", request.UserID, err)
 	}
@@ -143,7 +150,7 @@ func (svc *Service) GetAll(ctx context.Context, request data.GetAllMetadataReque
 	for _, file := range files {
 		file := file.ToResponse()
 		if err != nil {
-			log.Printf("unable to map file metadata: %s, to dto: %v", file, err)
+			log.Printf("unable to map file metadata: %v, to dto: %v", file, err)
 		}
 		response = append(response, file)
 	}
@@ -151,10 +158,10 @@ func (svc *Service) GetAll(ctx context.Context, request data.GetAllMetadataReque
 	return response, nil
 }
 
-func (svc *Service) FindMetadata(ctx context.Context, request data.FindMetadataRequest) ([]data.MetaData, error) {
+func (svc *Service) FindMetadata(ctx context.Context, request FindMetadataRequest) ([]MetaData, error) {
 	var (
 		repo  = svc.repo
-		files []data.MetaData
+		files []MetaData
 	)
 
 	model := request.ToModel()
@@ -167,7 +174,7 @@ func (svc *Service) FindMetadata(ctx context.Context, request data.FindMetadataR
 	return files, nil
 }
 
-func (svc *Service) Delete(ctx context.Context, request data.DeleteRequest) error {
+func (svc *Service) Delete(ctx context.Context, request DeleteRequest) error {
 	userID, ok := auth.UserIDFromCtx(ctx)
 	if !ok {
 		return errors.New("unable to get userID from context")
@@ -187,7 +194,7 @@ func (svc *Service) Delete(ctx context.Context, request data.DeleteRequest) erro
 	return nil
 }
 
-func (svc *Service) MoveToRubbish(ctx context.Context, request data.DeleteRequest) error {
+func (svc *Service) MoveToRubbish(ctx context.Context, request DeleteRequest) error {
 	userID, ok := auth.UserIDFromCtx(ctx)
 	if !ok {
 		return errors.New("unable to get userID from context")

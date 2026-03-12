@@ -18,7 +18,7 @@ var (
 	mockSvc = &mockService{}
 )
 
-func (m *mockService) Upload(r *http.Request, ctx context.Context) ([]MetaData, error) {
+func (m *mockService) Upload(ctx context.Context, r *http.Request) ([]MetaData, error) {
 	return []MetaData{}, nil
 }
 
@@ -34,7 +34,7 @@ func (m *mockService) MoveToRubbish(ctx context.Context, request DeleteRequest) 
 	return nil
 }
 
-func (m *mockService) GetAll(ctx context.Context, request GetAllMetadataRequest) ([]MetaDataResponse, error) {
+func (m *mockService) FindAllMetadata(ctx context.Context, request GetAllMetadataRequest) ([]MetaDataResponse, error) {
 	return []MetaDataResponse{}, nil
 }
 
@@ -110,5 +110,30 @@ func TestHandler_Delete(t *testing.T) {
 	if recorder.Code != http.StatusOK {
 		t.Fatalf("expected 200, got: %v", recorder.Code)
 	}
+}
 
+func TestHandler_TempDelete(t *testing.T) {
+	h := Handler{svc: mockSvc}
+	payload := DeleteRequest{ID: uuid.New()}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatal("invalid test json payload")
+	}
+
+	req := httptest.NewRequest(
+		http.MethodDelete,
+		"/api/files/temp-delete",
+		bytes.NewReader(body),
+	)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer token")
+
+	recorder := httptest.NewRecorder()
+
+	h.TempDelete(recorder, req)
+	if recorder.Code != 204 {
+		t.Fatalf("expected 204, got %v", recorder.Code)
+	}
 }

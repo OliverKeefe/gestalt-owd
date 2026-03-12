@@ -1,11 +1,17 @@
 package auth
 
 import (
+	"context"
+	"errors"
 	"log"
 
 	"github.com/MicahParks/keyfunc/v3"
 	"github.com/golang-jwt/jwt/v5"
 )
+
+type contextKey string
+
+const userIDKey contextKey = "userID"
 
 type Authenticator struct {
 	Issuer  string
@@ -25,27 +31,46 @@ func New(issuer, jwksUrl string) (*Authenticator, error) {
 	}, nil
 }
 
-func (k *Authenticator) ValidateJWT(jwtB64 string) (bool, error) {
+func (k *Authenticator) ValidateJWT(ctx context.Context, jwtB64 string) (context.Context, bool, error) {
+	claims := &jwt.RegisteredClaims{}
 	kf := func(t *jwt.Token) (any, error) {
 		return k.KeyFunc.Keyfunc(t)
 	}
-	token, err := jwt.Parse(jwtB64, kf)
+	token, err := jwt.ParseWithClaims(
+		jwtB64,
+		claims,
+		kf,
+		jwt.WithValidMethods([]string{"RS256"}),
+	)
 	if err != nil {
 		log.Printf("failed to parse the JWT. %v", err)
-		return false, err
+		return ctx, false, err
 	}
-
-	//TODO: map claims to struct and verify using jwt pkg.
 
 	if !token.Valid {
 		log.Printf("invalid token.")
-		return false, nil
+		return ctx, false, nil
 	}
 
-	return true, nil
+	if claims.Issuer != k.Issuer {
+		return ctx, false, errors.New("invalid issuer")
+	}
+
+	newCtx := context.WithValue(ctx, userIDKey, claims.Subject)
+	return newCtx, true, nil
+
 }
 
 func (k *Authenticator) ReissueJWT() (jwt.Token, error) {
 	var tkn jwt.Token
 	return tkn, nil
+}
+
+func UserIDFromCtx(ctx context.Context) (string, bool) {
+	userID, ok := ctx.Value(userIDKey).(string)
+	return userID, ok
+}
+
+func (k *Authenticator) InjectUserID(ctx context.Context, userID string) context.Context {
+	return context.WithValue(ctx, userIDKey, userID)
 }
