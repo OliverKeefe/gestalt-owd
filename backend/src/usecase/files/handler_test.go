@@ -18,7 +18,7 @@ var (
 	mockSvc = &mockService{}
 )
 
-func (m *mockService) Upload(r *http.Request, ctx context.Context) ([]MetaData, error) {
+func (m *mockService) Upload(ctx context.Context, r *http.Request) ([]MetaData, error) {
 	return []MetaData{}, nil
 }
 
