@@ -2,7 +2,6 @@ package files
 
 import (
 	"backend/src/internal/db/metadb"
-	data "backend/src/usecase/files/data"
 	"context"
 	"errors"
 	"fmt"
@@ -16,16 +15,16 @@ import (
 )
 
 type Repository struct {
-	db *metadb.MetadataDatabase
+	db metadb.Pool
 }
 
-func NewRepository(db *metadb.MetadataDatabase) *Repository {
+func NewRepository(db metadb.Pool) *Repository {
 	return &Repository{
 		db: db,
 	}
 }
 
-func (repo *Repository) SaveMetaData(meta data.MetaData, ctx context.Context) error {
+func (repo *Repository) SaveMetaData(ctx context.Context, meta MetaData) (MetaData, error) {
 	const query = `INSERT INTO file_metadata (
                            id,
                            file_name,
@@ -38,7 +37,7 @@ func (repo *Repository) SaveMetaData(meta data.MetaData, ctx context.Context) er
                            owner_id) 
 					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);`
 
-	_, err := repo.db.Pool.Exec(
+	_, err := repo.db.Exec(
 		ctx,
 		query,
 		meta.ID,
@@ -53,9 +52,9 @@ func (repo *Repository) SaveMetaData(meta data.MetaData, ctx context.Context) er
 		meta.Owner,
 	)
 	if err != nil {
-		return err
+		return meta, err
 	}
-	return nil
+	return meta, nil
 }
 
 // Helper method to save FilePart binary data.
@@ -80,10 +79,10 @@ func (repo *Repository) SaveFileData(basePath string, rdr io.Reader, filename st
 	return nil
 }
 
-func (repo *Repository) GetAllFiles(
+func (repo *Repository) FindAllMetadata(
 	ctx context.Context,
-	req data.GetAllMetadataRequest,
-) ([]data.MetaData, error) {
+	req GetAllMetadataRequest,
+) ([]MetaData, error) {
 
 	var (
 		rows pgx.Rows
@@ -91,7 +90,7 @@ func (repo *Repository) GetAllFiles(
 	)
 
 	if req.Cursor == nil || req.Cursor.ID == uuid.Nil || req.Cursor.ModifiedAt.IsZero() {
-		rows, err = repo.db.Pool.Query(ctx, `
+		rows, err = repo.db.Query(ctx, `
 			SELECT id, file_name, path, size, file_type, modified_at,
 				uploaded_at, owner_id, checksum, version 
 			FROM file_metadata
@@ -101,7 +100,7 @@ func (repo *Repository) GetAllFiles(
 		`, req.UserID, req.Limit)
 
 	} else {
-		rows, err = repo.db.Pool.Query(ctx, `
+		rows, err = repo.db.Query(ctx, `
 			SELECT id, file_name, path, size, file_type, modified_at,
 				uploaded_at, owner_id, checksum, version
 			FROM file_metadata
@@ -116,10 +115,10 @@ func (repo *Repository) GetAllFiles(
 	}
 	defer rows.Close()
 
-	result := make([]data.MetaData, 0, req.Limit)
+	result := make([]MetaData, 0, req.Limit)
 
 	for rows.Next() {
-		var model data.MetaData
+		var model MetaData
 		if err := rows.Scan(
 			&model.ID,
 			&model.FileName,
@@ -147,19 +146,19 @@ func (repo *Repository) GetAllFiles(
 	return result, nil
 }
 
-func (repo *Repository) FindMetadata(ctx context.Context, model data.MetaData) ([]data.MetaData, error) {
-	var result []data.MetaData
+func (repo *Repository) FindMetadata(ctx context.Context, model MetaData) ([]MetaData, error) {
+	var result []MetaData
 
 	query, args := FindMetadataQuery(model)
 
-	rows, err := repo.db.Pool.Query(ctx, query, args...)
+	rows, err := repo.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var model data.MetaData
+		var model MetaData
 		if err := rows.Scan(
 			&model.ID,
 			&model.FileName,
@@ -185,7 +184,7 @@ func (repo *Repository) FindMetadata(ctx context.Context, model data.MetaData) (
 func (repo *Repository) DeleteMetadata(ctx context.Context, id uuid.UUID, ownerId uuid.UUID) error {
 	const query = `DELETE FROM file_metadata WHERE id = $1 AND owner_id = $2;`
 
-	status, err := repo.db.Pool.Exec(ctx, query, id, ownerId)
+	status, err := repo.db.Exec(ctx, query, id, ownerId)
 	if err != nil {
 		return fmt.Errorf(
 			"status: %s, could not delete file metadata, %w",
@@ -203,7 +202,7 @@ func (repo *Repository) DeleteMetadata(ctx context.Context, id uuid.UUID, ownerI
 	return nil
 }
 
-func (repo *Repository) Modify(ctx context.Context, model data.MetaData) (error, data.MetaData) {
+func (repo *Repository) Modify(ctx context.Context, model MetaData) (error, MetaData) {
 	panic("not implemented")
 }
 
