@@ -34,7 +34,7 @@ func (m *mockService) MoveToRubbish(ctx context.Context, request DeleteRequest) 
 	return nil
 }
 
-func (m *mockService) GetAll(ctx context.Context, request GetAllMetadataRequest) ([]MetaDataResponse, error) {
+func (m *mockService) FindAllMetadata(ctx context.Context, request GetAllMetadataRequest) ([]MetaDataResponse, error) {
 	return []MetaDataResponse{}, nil
 }
 
