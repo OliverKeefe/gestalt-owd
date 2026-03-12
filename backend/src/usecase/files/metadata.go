@@ -31,6 +31,20 @@ type MetaData struct {
 	Version    time.Time   `json:"version"`
 }
 
+type IPFSMetadata struct {
+	CID        string     `json:"cid"`
+	Space      string     `json:"space"`
+	Visibility Visibility `json:"visibility"`
+	DID        string     `json:"did"`
+	Shards     []string   `json:"shards"`
+}
+
+type Visibility int
+
+const (
+	Public Visibility = iota
+	Private
+)
 func (m *MetaData) ToResponse() MetaDataResponse {
 	return MetaDataResponse{
 		ID:         m.ID,
@@ -76,6 +90,11 @@ func (req *GetAllMetadataRequest) Bind(r *http.Request) error {
 	return nil
 }
 
+type MetadataCursor struct {
+	ModifiedAt time.Time `json:"modified_at"`
+	ID         uuid.UUID `json:"id"`
+}
+
 type FindMetadataRequest struct {
 	ID         uuid.UUID   `json:"file_id"`
 	FileName   string      `json:"file_name,omitempty"`
@@ -89,11 +108,6 @@ type FindMetadataRequest struct {
 	Group      []uuid.UUID `json:"group_id,omitempty"`
 	CheckSum   []byte      `json:"checksum,omitempty"`
 	Version    time.Time   `json:"version,omitempty"`
-}
-
-type MetadataCursor struct {
-	ModifiedAt time.Time `json:"modified_at"`
-	ID         uuid.UUID `json:"id"`
 }
 
 func (req *FindMetadataRequest) ToModel() MetaData {
@@ -113,20 +127,13 @@ func (req *FindMetadataRequest) ToModel() MetaData {
 	}
 }
 
-func (req *FindMetadataRequest) Bind(r *http.Request) error {
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return err
-	}
-	return nil
-}
-
 type DeleteRequest struct {
-	ID      uuid.UUID
-	OwnerID uuid.UUID
+	ID uuid.UUID `json:"id"`
+	//OwnerID uuid.UUID `json:"owner_id"`
 }
 
-func (req DeleteRequest) Bind(r *http.Request) error {
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+func (req *DeleteRequest) Bind(r *http.Request) error {
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		return err
 	}
 	return nil
