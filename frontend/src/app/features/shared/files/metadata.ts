@@ -1,4 +1,5 @@
 import MediaInfo from "mediainfo.js";
+import {uploadObject} from "@/app/features/shared/ipfs/upload.ts";
 
 
 /**
@@ -13,6 +14,7 @@ export type Metadata = ExtractedMetadata& {
     id: string
     ownerId: string
     checkSum: string
+    cids: string[]
 }
 
 type ExtractedMetadata = {
