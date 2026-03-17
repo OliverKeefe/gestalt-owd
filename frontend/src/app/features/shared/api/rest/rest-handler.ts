@@ -95,14 +95,13 @@ export class RestHandler {
     }
 
     public async handleDelete<T, R = unknown>(endpoint: string, payload: T): Promise<R> {
-        const userId = this.userId;
-        const token = this.token;
-        const url = `${this.baseURL}/${endpoint}${userId}`;
+        const token = useAuthStore.getState().token;
+        const url = `${this.baseURL}/${endpoint}`;
         const options: RequestInit = {
             method: "DELETE",
             headers: {
+                "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json"
             },
             body: JSON.stringify(payload)
         };
