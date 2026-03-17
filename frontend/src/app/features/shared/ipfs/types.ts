@@ -12,3 +12,5 @@ export type StorachaUserInfo = {
     account: string;
     did: DID;
 }
+
+export type FileData = Uint8Array<ArrayBuffer>[];

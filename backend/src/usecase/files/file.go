@@ -7,7 +7,7 @@ import (
 
 type File struct {
 	Metadata MetaData
-	FileData FileData
+	Bytes    FileData
 }
 
 type FileData struct {

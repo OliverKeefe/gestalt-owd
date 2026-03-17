@@ -1,4 +1,4 @@
-import { FileTable } from "@/app/features/shared/components/tables/file-table.tsx";
+import { FileTable } from "@/app/features/files/components/file-table";
 import { Container } from "../../shared/components/layout/container";
 
 

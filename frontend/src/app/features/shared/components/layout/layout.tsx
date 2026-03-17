@@ -3,6 +3,7 @@ import { AppSidebar } from "@/app/features/shared/components/navigation/sidebars
 import { Outlet } from "react-router-dom"
 import { AppTopbar } from "../navigation/topbars/app-topbar"
 import {SecondarySidebar} from "@/app/features/shared/components/navigation/sidebars/secondary-sidebar.tsx";
+import {SnackbarProvider} from "notistack";
 
 interface LayoutProps {
     children?: React.ReactNode;
@@ -18,6 +19,7 @@ export default function Layout({ children }: LayoutProps) {
                     <AppTopbar>
                         <SidebarTrigger />
                     </AppTopbar>
+                    <SnackbarProvider />
                     <main className="flex-1 min-w-0 overflow-x-hidden theme-scroll">
                         {children}
                         <Outlet />
