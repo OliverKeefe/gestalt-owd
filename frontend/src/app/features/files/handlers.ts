@@ -1,5 +1,6 @@
 import {RestHandler} from "@/app/features/shared/api/rest/rest-handler.ts";
-import type { Metadata } from "@/app/features/home/hooks/data";
+import type { Metadata } from "@/app/features/files/types.ts";
+import {UploadForm} from "@/app/features/shared/files/upload.ts";
 
 export interface CursorReq {
     modified_at: string | null;
@@ -12,7 +13,7 @@ export interface GetAllMetadataReq {
     limit: number;
 }
 
-interface GetAllMetadataResp {
+export interface GetAllMetadataResp {
     status: string;
     metadata: Metadata[];
 }
@@ -33,3 +34,4 @@ export async function uploadFiles(files: File[]) {
     await form.prepare();
     return await form.send();
 }
+
