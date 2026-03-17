@@ -19,7 +19,7 @@ import type { Metadata } from "@/app/features/files/types.ts"
 import { useAuthStore } from "@/security/auth/authstore/auth-store"
 import { getIconForFile } from "@react-symbols/icons/utils"
 import { FileDialog } from "@/app/features/files/components/file-dialog.tsx";
-import { FileDropdown } from "@/app/features/files/components/file-dropdown.tsx";
+import FileDropdown from "@/app/features/files/components/file-dropdown.tsx";
 
 /**
  * Main file table component in files page.
