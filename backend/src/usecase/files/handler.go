@@ -33,13 +33,14 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 
 	r.Body = http.MaxBytesReader(w, r.Body, 100<<20)
 
-	if err := svc.Upload(r, r.Context()); err != nil {
+	newMetadata, err := svc.Upload(r.Context(), r)
+	if err != nil {
 		log.Printf("unable to save uploaded file: %v", err)
 		http.Error(w, "could not save file", http.StatusInternalServerError)
 	}
 
-	err := message.Response(w, "uploaded", nil)
-	if err != nil {
+	log.Printf("Metadata: %v", newMetadata)
+	if err := message.Response(w, "uploaded", newMetadata); err != nil {
 		log.Print(err)
 		return
 	}
@@ -53,7 +54,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request data.GetAllMetadataRequest
+	var request GetAllMetadataRequest
 	err := request.Bind(r)
 	if err != nil {
 		log.Printf("couldn't map http request to dto: %v", err)
@@ -61,7 +62,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	files, err := svc.GetAll(r.Context(), request)
+	files, err := svc.FindAllMetadata(r.Context(), request)
 	if err != nil {
 		log.Printf("couldn't get all user's files: %v", err)
 		http.Error(w, "unable to get user's files", http.StatusInternalServerError)
@@ -74,9 +75,16 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (req *FindMetadataRequest) Bind(r *http.Request) error {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (h *Handler) FindMetadata(w http.ResponseWriter, r *http.Request) {
 	svc := h.svc
-	var request data.FindMetadataRequest
+	var request FindMetadataRequest
 
 	if err := request.Bind(r); err != nil {
 		log.Printf("unable to bind raw request to FindMetadataRequest, %v", err)
@@ -104,21 +112,26 @@ func (h *Handler) UpdateMetadata(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
-	var request data.DeleteRequest
+	var request DeleteRequest
 
 	if err := request.Bind(r); err != nil {
-		log.Printf("unable to bind request to DeleteRequest %v", err)
 		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
 	}
 
 	if err := h.svc.Delete(r.Context(), request); err != nil {
-		log.Printf("unable to delete file metadata, %v", err)
 		http.Error(w, "unable to delete file", http.StatusExpectationFailed)
+		return
+	}
+
+	if err := message.Response(w, "deleted", nil); err != nil {
+		log.Printf("unable to return response: %v", err)
+		return
 	}
 }
 
 func (h *Handler) TempDelete(w http.ResponseWriter, r *http.Request) {
-	var request data.DeleteRequest
+	var request DeleteRequest
 
 	if err := request.Bind(r); err != nil {
 		log.Printf("unable to bind request to DeleteRequest %v", err)
