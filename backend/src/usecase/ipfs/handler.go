@@ -1,0 +1,19 @@
+package ipfs
+
+import (
+	"backend/src/internal/ipfs"
+	"backend/src/usecase/files"
+	"context"
+)
+
+type service interface {
+}
+
+type Handler struct {
+	svc  service
+	ipfs ipfs.IPFSProvider
+}
+
+func (h *Handler) UploadToIPFS(ctx context.Context, file []files.File) {
+
+}

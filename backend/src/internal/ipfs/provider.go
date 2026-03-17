@@ -7,9 +7,10 @@ import (
 	"github.com/ipfs/go-cid"
 )
 
+// IPFSProvider interface for IPFS operations.
 type IPFSProvider interface {
-	Authenticate(ctx context.Context, account string, did string) (bool, error)
-	Upload(ctx context.Context, rdr io.Reader) (bool, cid.Cid, error)
-	Remove(ctx context.Context) (bool, error)
-	Audit(ctx context.Context, checksumVals []byte) ([]byte, bool, error)
+	Authorize(ctx context.Context, principal string) (string, error)
+	Upload(ctx context.Context, rdr io.Reader) (cid.Cid, error)
+	UnPin(ctx context.Context, c cid.Cid) (bool, error)
+	CheckStatus(ctx context.Context, c cid.Cid) (bool, error)
 }

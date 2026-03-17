@@ -56,7 +56,7 @@ CREATE TABLE file_metadata(
     uploaded_at TIMESTAMP, --NOT NULL,
     version TIMESTAMP, --NOT NULL,
     checksum BYTEA,
-    owner_id UUID NOT NULL REFERENCES users(id)
+    owner_id UUID NOT NULL
 );
 
 -- INDEX FOR FILE METADATA PAGINATION
