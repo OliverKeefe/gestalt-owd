@@ -1,3 +1,5 @@
+// TODO: use interceptor pattern or some kind of functional factory here instead of class.
+
 /**
 * Handles client-side REST requests and responses (POST, GET, PUT, CREATE, DELETE).
 * */
