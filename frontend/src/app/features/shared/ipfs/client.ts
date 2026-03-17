@@ -1,6 +1,6 @@
 import * as Client from "@storacha/client";
 import cred from "./cred.json";
-import type { StorachaUserInfo } from "@/app/features/shared/storacha/types.ts";
+import type { StorachaUserInfo } from "@/app/features/shared/ipfs/types.ts";
 
 export const StorachaClient = await Client.create();
 
