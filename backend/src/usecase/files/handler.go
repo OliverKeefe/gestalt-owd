@@ -25,8 +25,7 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
-// Upload Handler function for file upload.
-// Endpoint api/files/upload
+// Upload Handler method for file multipart form upload.
 func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	svc := h.svc
 	var newMetadata []MetaData
