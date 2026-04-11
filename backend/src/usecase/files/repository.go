@@ -15,12 +15,16 @@ import (
 )
 
 type Repository struct {
-	db metadb.Pool
+	db     metadb.Pool
+	s3     *s3.Client
+	bucket string
 }
 
-func NewRepository(db metadb.Pool) *Repository {
+func NewRepository(db metadb.Pool, s3Client *s3.Client, bucket string) *Repository {
 	return &Repository{
-		db: db,
+		db:     db,
+		s3:     s3Client,
+		bucket: bucket,
 	}
 }
 
@@ -57,8 +61,26 @@ func (repo *Repository) SaveMetaData(ctx context.Context, meta MetaData) (MetaDa
 	return meta, nil
 }
 
-// Helper method to save FilePart binary data.
-func (repo *Repository) SaveFileData(basePath string, rdr io.Reader, filename string) error {
+func (repo *Repository) SaveFileData(ctx context.Context, basePath string, rdr io.Reader, filename string) error {
+	ownerID, ok := auth.UserIDFromCtx(ctx)
+	if !ok {
+		log.Fatal("unable to get ownerID from context, thus can't generate s3 file key.")
+	}
+
+	key := fmt.Sprintf("%s/%s", ownerID, filename)
+
+	_, err := repo.s3.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket: &repo.bucket,
+		Key:    &key,
+		Body:   rdr,
+	})
+
+	return err
+}
+
+// SaveFileDataLocally is a helper method to save FilePart binary data to local OS.
+// As such, it should only be used for the purposes of debugging.
+func (repo *Repository) SaveFileDataLocally(basePath string, rdr io.Reader, filename string) error {
 	if err := os.MkdirAll(basePath, 0755); err != nil {
 		return err
 	}
