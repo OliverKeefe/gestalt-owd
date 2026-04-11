@@ -1,15 +1,18 @@
 package files
 
 import (
+	"backend/src/internal/auth"
 	"backend/src/internal/db/metadb"
 	"context"
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
