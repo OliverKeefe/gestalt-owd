@@ -45,6 +45,7 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetAll method for retrieving all file metadata.
 func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	svc := h.svc
 
@@ -74,13 +75,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (req *FindMetadataRequest) Bind(r *http.Request) error {
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return err
-	}
-	return nil
-}
-
+// FindMetadata method for searching files by metadata contents.
 func (h *Handler) FindMetadata(w http.ResponseWriter, r *http.Request) {
 	svc := h.svc
 	var request FindMetadataRequest
@@ -110,6 +105,7 @@ func (h *Handler) UpdateMetadata(w http.ResponseWriter, r *http.Request) {
 	panic("not implemented.")
 }
 
+// Delete handler method for the permanent removal of files and their respective metadata in DB.
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	var request DeleteRequest
 
@@ -129,6 +125,8 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// TempDelete handler method for the flagging of data to be removed after
+// specified timelapse.
 func (h *Handler) TempDelete(w http.ResponseWriter, r *http.Request) {
 	var request DeleteRequest
 
