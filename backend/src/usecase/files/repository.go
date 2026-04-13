@@ -67,7 +67,7 @@ func (repo *Repository) SaveMetaData(ctx context.Context, meta MetaData) (MetaDa
 func (repo *Repository) SaveToS3(ctx context.Context, basePath string, rdr io.Reader, filename string) error {
 	ownerID, ok := auth.UserIDFromCtx(ctx)
 	if !ok {
-		log.Fatal("unable to get ownerID from context, thus can't generate s3 file key.")
+		// FIX: Actually return the error so the process stops
 		return errors.New("unable to get ownerID from context")
 	}
 
