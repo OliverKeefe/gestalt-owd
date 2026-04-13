@@ -18,6 +18,7 @@ import (
 type repository interface {
 	SaveMetaData(ctx context.Context, meta MetaData) (MetaData, error) //TODO: Change order of params
 	SaveFileData(basePath string, rdr io.Reader, filename string) error
+	SaveToS3(ctx context.Context, basePath string, rdr io.Reader, filename string) error
 	FindMetadata(ctx context.Context, model MetaData) ([]MetaData, error)
 	DeleteMetadata(ctx context.Context, id uuid.UUID, ownerId uuid.UUID) error
 	FindAllMetadata(ctx context.Context, req GetAllMetadataRequest) ([]MetaData, error)
