@@ -11,7 +11,7 @@ import (
 
 var (
 	route = func(a *auth.Authenticator, h http.HandlerFunc) http.Handler {
-		return middleware.Protect(context.Background(), a, h)
+		return middleware.Protect(a, h)
 	}
 )
 
