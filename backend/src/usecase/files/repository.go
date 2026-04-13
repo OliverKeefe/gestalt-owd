@@ -64,10 +64,11 @@ func (repo *Repository) SaveMetaData(ctx context.Context, meta MetaData) (MetaDa
 	return meta, nil
 }
 
-func (repo *Repository) SaveFileData(ctx context.Context, basePath string, rdr io.Reader, filename string) error {
+func (repo *Repository) SaveToS3(ctx context.Context, basePath string, rdr io.Reader, filename string) error {
 	ownerID, ok := auth.UserIDFromCtx(ctx)
 	if !ok {
 		log.Fatal("unable to get ownerID from context, thus can't generate s3 file key.")
+		return errors.New("unable to get ownerID from context")
 	}
 
 	key := fmt.Sprintf("%s/%s", ownerID, filename)
@@ -77,13 +78,16 @@ func (repo *Repository) SaveFileData(ctx context.Context, basePath string, rdr i
 		Key:    &key,
 		Body:   rdr,
 	})
+	if err != nil {
+		log.Printf("put error: %+v", err)
+		return err
+	}
 
-	return err
+	return nil
 }
 
-// SaveFileDataLocally is a helper method to save FilePart binary data to local OS.
-// As such, it should only be used for the purposes of debugging.
-func (repo *Repository) SaveFileDataLocally(basePath string, rdr io.Reader, filename string) error {
+func (repo *Repository) SaveFileData(basePath string, rdr io.Reader, filename string) error {
+	log.Printf("SaveFileData called")
 	if err := os.MkdirAll(basePath, 0755); err != nil {
 		return err
 	}
