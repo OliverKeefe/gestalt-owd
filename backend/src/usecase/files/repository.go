@@ -239,6 +239,10 @@ func (repo *Repository) DeleteMetadata(ctx context.Context, id uuid.UUID, ownerI
 	return nil
 }
 
+func (repo *Repository) DeleteFileData(ctx context.Context, id uuid.UUID, ownerId uuid.UUID) error {
+	panic("not implemented")
+}
+
 func (repo *Repository) Modify(ctx context.Context, model MetaData) (error, MetaData) {
 	panic("not implemented")
 }
