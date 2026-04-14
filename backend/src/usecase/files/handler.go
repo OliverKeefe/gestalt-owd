@@ -3,7 +3,6 @@ package files
 import (
 	"backend/src/internal/api/message"
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 )
