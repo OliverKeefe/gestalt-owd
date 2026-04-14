@@ -6,7 +6,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
@@ -15,27 +14,19 @@ type S3Client struct {
 }
 
 func NewS3Client() (S3Client, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithRegion("eu-west-1"),
-		config.WithCredentialsProvider(
-			aws.NewCredentialsCache(
-				credentials.StaticCredentialsProvider{
-					Value: aws.Credentials{
-						AccessKeyID:     "test",
-						SecretAccessKey: "test",
-						SessionToken:    "test",
-					},
-				},
-			),
-		),
+	awsEndpoint := "http://localhost:4566"
+	awsRegion := "us-east-1"
+
+	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(awsRegion),
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Cannot load the AWS configs: %s", err)
 	}
 
-	client := s3.NewFromConfig(cfg, func(opts *s3.Options) {
-		opts.BaseEndpoint = aws.String("http://localhost:4566")
-		opts.UsePathStyle = true
+	client := s3.NewFromConfig(awsCfg, func(o *s3.Options) {
+		o.UsePathStyle = true
+		o.BaseEndpoint = aws.String(awsEndpoint)
 	})
 
 	out, err := client.ListBuckets(context.TODO(), &s3.ListBucketsInput{})
