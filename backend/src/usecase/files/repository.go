@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/transfermanager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -67,19 +69,25 @@ func (repo *Repository) SaveMetaData(ctx context.Context, meta MetaData) (MetaDa
 func (repo *Repository) SaveToS3(ctx context.Context, basePath string, rdr io.Reader, filename string) error {
 	ownerID, ok := auth.UserIDFromCtx(ctx)
 	if !ok {
-		// FIX: Actually return the error so the process stops
 		return errors.New("unable to get ownerID from context")
 	}
 
 	key := fmt.Sprintf("%s/%s", ownerID, filename)
 
-	_, err := repo.s3.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: &repo.bucket,
-		Key:    &key,
+	var partMiBs int64 = 10
+
+	uploader := transfermanager.New(repo.s3Client, func(o *transfermanager.Options) {
+		o.PartSizeBytes = partMiBs * 1024 * 1024
+		o.Concurrency = 3
+	})
+
+	_, err := uploader.UploadObject(ctx, &transfermanager.UploadObjectInput{
+		Bucket: aws.String(repo.bucket),
+		Key:    aws.String(key),
 		Body:   rdr,
 	})
 	if err != nil {
-		log.Printf("put error: %+v", err)
+		log.Printf("S3 transfer manager put error: %v", err)
 		return err
 	}
 
