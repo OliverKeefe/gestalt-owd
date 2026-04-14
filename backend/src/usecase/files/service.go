@@ -118,12 +118,8 @@ func (svc *Service) Upload(ctx context.Context, r *http.Request) ([]MetaData, er
 			hash := sha256.Sum256(data)
 
 			if debug == false {
-				data, err := io.ReadAll(part)
-				if err != nil {
-					return nil, err
-				}
-
-				err = svc.repo.SaveToS3(ctx,
+				err = svc.repo.SaveToS3(
+					ctx,
 					"",
 					bytes.NewReader(data),
 					part.FileName(),
