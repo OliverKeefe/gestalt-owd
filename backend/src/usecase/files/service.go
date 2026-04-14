@@ -88,6 +88,7 @@ func (svc *Service) Upload(ctx context.Context, r *http.Request) ([]MetaData, er
 			if !ok {
 				return nil, errors.New("could not get userID from context")
 			}
+
 			ownerID, err := uuid.Parse(userId)
 			if err != nil {
 				return nil, err
