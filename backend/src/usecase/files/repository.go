@@ -18,16 +18,16 @@ import (
 )
 
 type Repository struct {
-	db     metadb.Pool
-	s3     *s3.Client
-	bucket string
+	db       metadb.Pool
+	s3Client *s3.Client
+	bucket   string
 }
 
 func NewRepository(db metadb.Pool, s3Client *s3.Client, bucket string) *Repository {
 	return &Repository{
-		db:     db,
-		s3:     s3Client,
-		bucket: bucket,
+		db:       db,
+		s3Client: s3Client,
+		bucket:   bucket,
 	}
 }
 
