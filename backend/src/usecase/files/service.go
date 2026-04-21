@@ -22,6 +22,7 @@ type repository interface {
 	SaveToS3(ctx context.Context, basePath string, rdr io.Reader, filename string) error
 	FindMetadata(ctx context.Context, model MetaData) ([]MetaData, error)
 	DeleteMetadata(ctx context.Context, id uuid.UUID, ownerId uuid.UUID) error
+	DeleteFileData(ctx context.Context, fileID uuid.UUID, ownerID uuid.UUID) error
 	FindAllMetadata(ctx context.Context, req GetAllMetadataRequest) ([]MetaData, error)
 	MarkForDeletion(ctx context.Context, id uuid.UUID, id2 uuid.UUID) error
 }
