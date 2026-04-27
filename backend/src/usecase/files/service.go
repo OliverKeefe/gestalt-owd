@@ -210,6 +210,11 @@ func (svc *Service) Delete(ctx context.Context, request DeleteRequest) error {
 		log.Printf("unable to parse userID string to uuid")
 	}
 
+	err = svc.repo.DeleteFileData(ctx, request.ID, ownerID)
+	if err != nil {
+		return fmt.Errorf("unable to delete file data, %v", err)
+	}
+
 	err = svc.repo.DeleteMetadata(ctx, request.ID, ownerID)
 	if err != nil {
 		log.Printf("could not delete file metadata, %v", err)
