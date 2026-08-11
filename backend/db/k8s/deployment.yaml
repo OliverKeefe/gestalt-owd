@@ -15,8 +15,8 @@ spec:
         app: metadata-database-postgres
     spec:
       containers:
-        - name: postgres-18-4
-          image: postgres:18-trixie
+        - name: owd-db
+          image: owd-db:18
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5432
