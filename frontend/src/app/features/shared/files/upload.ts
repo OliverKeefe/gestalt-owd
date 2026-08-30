@@ -75,13 +75,5 @@ export class UploadForm {
         return null;
     }
 
-    private async handleFailedUpload(response: Response): Promise<void> {
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`Upload failed: ${response.status} ${response.statusText}`, errorText);
-            throw new Error(`Upload failed with status ${response.status}`);
-        }
-    }
-
 }
 
