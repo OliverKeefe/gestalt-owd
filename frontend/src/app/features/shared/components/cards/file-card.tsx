@@ -1,12 +1,9 @@
 import {
     Card, CardContent,
     CardHeader,
-    CardTitle,
 } from "@/components/ui/card"
-import { FilePlus, FolderPlus, Share, Upload } from "lucide-react"
 
 interface FileCardProps {
-    id: number;
     name: string;
     lastModified: string;
     icon: string;
@@ -17,7 +14,7 @@ interface FileCardProps {
     screenshot: string;
 }
 
-export function FileCard({ id, name, lastModified, icon, type, size, owner, access, screenshot }: FileCardProps) {
+export function FileCard({ name, lastModified, icon, type, size, owner, access, screenshot }: FileCardProps) {
     const placeholder: string = "https://placehold.co/600x400/000000/FFFFFF/png"
 
 
