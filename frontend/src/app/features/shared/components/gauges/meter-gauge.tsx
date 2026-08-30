@@ -5,13 +5,12 @@ export type MeterGaugeSegment = {
     percentage?: number;
 }
 
-type MeterGaugeProps = React.PropsWithChildren<{
+type MeterGaugeProps = {
     segmentData: MeterGaugeSegment[];
     total: number;
-    children: React.ReactNode | undefined;
-}>;
+};
 
-export function MeterGauge({ segmentData, total, children }: MeterGaugeProps) {
+export function MeterGauge({ segmentData, total }: MeterGaugeProps) {
     const processedSegments = segmentData.map(seg => ({
         ...seg,
         percentage: (seg.value / total) * 100,
@@ -34,16 +33,6 @@ function Segment({ label, color, percentage }: MeterGaugeSegment) {
             style={{ width: `${percentage}%` }}
             title={label}
         />
-    );
-}
-
-type BackgroundProps = React.PropsWithChildren<{
-    children: React.ReactNode | undefined;
-}>;
-
-function Background({ children }: BackgroundProps) {
-    return (
-        <div className={"rounded-b-full h[5px] w-full"}>{children}</div>
     );
 }
 
