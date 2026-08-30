@@ -24,7 +24,7 @@
 
         root.render(
             <StrictMode>
-                <App isAuthenticated={true} />
+                <App />
             </StrictMode>
         );
     }
