@@ -24,16 +24,6 @@ export class RestHandler {
     }
 
     /**
-     * Gets the JWT Token from keycloak kc.token in AuthStore.
-     *
-     * @return string | null of kc.token (as string or null val).
-     * */
-    private get token(): string | null {
-        const { token } = useAuthStore.getState();
-        return token;
-    }
-
-    /**
      * Handles logic for failed HTTP request.
      * @return Promise<void>
      * @throws Error containing HTTP status and information backend allows frontned to see.
