@@ -1,12 +1,7 @@
 import * as React from "react"
 import {
-    Blocks,
-    Calendar,
-    File,
-    MessageCircleQuestion,
     Search,
     Settings2,
-    Image,
     Trash2,
     CircleUser,
     School,
@@ -15,10 +10,8 @@ import {
     Handshake, Laptop, Cloud,
 } from "lucide-react"
 
-import { NavFavorites } from "@/app/features/shared/components/navigation/nav-favorites.tsx"
 import { NavMain } from "@/app/features/shared/components/navigation/nav-main.tsx"
 import { NavSecondary } from "@/app/features/shared/components/navigation/nav-secondary.tsx"
-import { NavWorkspaces } from "@/app/features/shared/components/navigation/nav-workspaces.tsx"
 import { TeamSwitcher } from "@/app/features/shared/components/navigation/team-switcher.tsx"
 import {
   Sidebar,
@@ -26,27 +19,10 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar.tsx"
-import { UploadDialog } from "@/app/features/shared/components/dialog/upload-dialog.tsx";
-import {RestHandler} from "@/app/features/shared/api/rest/rest-handler.ts";
 import { ScrollArea } from "@/components/ui/scroll-area"
 import type {MeterGaugeSegment} from "@/app/features/shared/components/gauges/meter-gauge.tsx";
-import {CardDescription, CardTitle} from "@/components/ui/card.tsx";
 import {MeterGauge} from "@/app/features/shared/components/gauges/meter-gauge.tsx";
-import {Container} from "@/app/features/shared/components/layout/container.tsx";
 import {Button} from "@/components/ui/button.tsx";
-
-interface FolderData {
-  id: string;
-  name: string;
-  url: string;
-  subFolder: string;
-}
-
-interface FavoritesData {
-  id: string;
-  name: string;
-  url: string;
-}
 
 const data = {
   teams: [
@@ -109,11 +85,6 @@ const data = {
    ],
 }
 
-const usedStorage = 200;
-const totalFiles = 354;
-const totalDocuments = 243;
-const totalPhotos = 1203;
-const availableStorage = 500;
 const segdat: MeterGaugeSegment[] = [
     {
         label: "Photos",
@@ -135,16 +106,6 @@ const segdat: MeterGaugeSegment[] = [
     }
 ];
 
-const client: RestHandler = new RestHandler(`VITE_BACKEND_BASE_URL`);
-
-function GetFavorites(): Promise<FavoritesData[]> {
-  return client.handleGet<FavoritesData[]>(`files/favorites`)
-}
-
-function GetFolders(): Promise<FolderData[]> {
-  return client.handleGet<FolderData[]>(`files/folders`);
-}
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
         <Sidebar className="border-r-0 left-16" {...props}>
@@ -164,7 +125,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <MeterGauge
                         segmentData={segdat}
                         total={250}
-                        children={undefined}>
+                    >
                     </MeterGauge>
                     <div className="p-1 mt-2">
                         <Button
