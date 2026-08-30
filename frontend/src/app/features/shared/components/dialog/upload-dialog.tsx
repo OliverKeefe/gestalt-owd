@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
     Dialog,
     DialogContent,
@@ -91,7 +91,7 @@ export function UploadDialog({ onUploaded }: UploadDialogProps) {
                     minSize={1}
                     onDrop={handleDrop}
                     onError={console.error}
-                    src={files}
+                    src={files ?? undefined}
                 >
                     <DropzoneEmptyState />
                     <DropzoneContent />
