@@ -1,0 +1,53 @@
+{
+  "realm": "gestalt",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "requiredCredentials": ["password"],
+  "roles": {
+    "realm": [
+      { "name": "offline_access", "description": "Support for offline tokens" },
+      { "name": "uma_authorization", "description": "Resource authorization" },
+      {
+        "name": "default-roles-gestalt",
+        "composite": true,
+        "composites": { "realm": ["offline_access", "uma_authorization"] }
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "open-web-drive",
+      "name": "Open Web Drive",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://localhost/*", "http://localhost:5173/*"],
+      "webOrigins": ["http://localhost", "http://localhost:5173"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost/*,http://localhost:5173/*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@gestalt.local",
+      "emailVerified": true,
+      "firstName": "Gestalt",
+      "lastName": "Admin",
+      "credentials": [
+        { "type": "password", "value": "gestalt-admin", "temporary": false }
+      ],
+      "realmRoles": ["default-roles-gestalt", "offline_access", "uma_authorization"]
+    }
+  ]
+}
