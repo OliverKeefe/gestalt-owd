@@ -1,19 +1,5 @@
-import {Card, CardContent, CardDescription, CardFooter, CardTitle} from '@/components/ui/card.tsx';
+import {Card, CardContent, CardDescription, CardTitle} from '@/components/ui/card.tsx';
 import {MeterGauge, type MeterGaugeSegment} from "@/app/features/shared/components/gauges/meter-gauge.tsx";
-
-interface UsageData {
-    availableStorage: number;
-    usedStorage: number;
-    totalFiles: number;
-    totalDocuments: number;
-    totalPhotos: number;
-    totalVideos: number;
-    totalAudio: number;
-    totalBooks: number;
-    serviceHealth: string;
-    pins: number;
-    blocks: number;
-}
 
 export function UsageCard() {
     const usedStorage = 200;
@@ -54,7 +40,7 @@ export function UsageCard() {
                                  <MeterGauge
                                      segmentData={segdat}
                                      total={200}
-                                     children={undefined}>
+                                 >
                                  </MeterGauge>
                             </div>
                             <CardTitle className={"mt-2"}>Storage {usedStorage} GB</CardTitle>
@@ -73,14 +59,5 @@ export function UsageCard() {
                 </span>
             </CardContent>
         </Card>
-    );
-}
-
-function StorageUse() {
-    return (
-        <div>
-            <h3>Storage</h3>
-            <p></p>
-        </div>
     );
 }
