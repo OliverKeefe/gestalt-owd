@@ -1,0 +1,32 @@
+name: gestalt
+
+services:
+  db:
+    ports:
+      - "5433:5432"
+
+  backend:
+    build: !reset
+    image: golang:1.25.3
+    working_dir: /app
+    command: ["go", "run", "./cmd/owd"]
+    environment:
+      CORS_ALLOWED_ORIGINS: http://localhost:5173
+    volumes: !reset
+      - ../../backend:/app
+
+  frontend:
+    build: !reset
+    image: node:22-alpine
+    working_dir: /app
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+    environment:
+      VITE_KEYCLOAK_URL: http://localhost:8080
+      VITE_KEYCLOAK_REALM: gestalt
+      VITE_KEYCLOAK_CLIENT_ID: open-web-drive
+      VITE_BACKEND_BASE_URL: http://localhost:8081
+      VITE_MAX_UPLOAD_SIZE_BYTES: "16106127360"
+    ports: !override
+      - "5173:5173"
+    volumes: !override
+      - ../../frontend:/app
