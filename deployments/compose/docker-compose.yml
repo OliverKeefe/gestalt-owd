@@ -1,0 +1,127 @@
+name: gestalt
+
+services:
+  keycloak:
+    image: keycloak/keycloak:26.2
+    restart: unless-stopped
+    command:
+      - start
+      - --http-enabled=true
+      - --http-port=8080
+      - --hostname=http://localhost:8080
+      - --hostname-strict=false
+      - --health-enabled=true
+      - --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-change-me}
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+      - ./keycloak/realm-export/gestalt-realm.json:/opt/keycloak/data/import/gestalt-realm.json:ro
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/9000; printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3; grep -q '200 OK' <&3"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  localstack:
+    image: localstack/localstack:3.8.1
+    restart: unless-stopped
+    environment:
+      SERVICES: s3
+      DEBUG: "0"
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-test}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-test}
+      AWS_DEFAULT_REGION: us-east-1
+    volumes:
+      - localstack-data:/var/lib/localstack
+      - ./localstack/init/01-buckets.sh:/etc/localstack/init/ready.d/01-buckets.sh:ro
+    ports:
+      - "4567:4566"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4566/_localstack/init/ready | grep -q '\"completed\": true'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  db:
+    build:
+      context: ../../backend/db
+      dockerfile: Dockerfile
+    image: owd-db:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-passwd}
+      POSTGRES_DB: ${POSTGRES_DB:-metadatadb}
+    volumes:
+      - owd-db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: cmd/docker/Dockerfile
+    image: owd-backend:latest
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-passwd}@db:5432/${POSTGRES_DB:-metadatadb}?sslmode=disable
+      KEYCLOAK_ISSUER_URL: http://localhost:8080/realms/gestalt
+      KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/gestalt/protocol/openid-connect/certs
+      PORT: "8081"
+      CORS_ALLOWED_ORIGINS: http://localhost
+      S3_ENDPOINT: http://localstack:4566
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-test}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-test}
+      MAX_UPLOAD_BYTES: "5242880"
+      BLOB_BUCKET_URL: "s3://temp-buck?endpoint=http://localstack:4566&disable_https=true&s3ForcePathStyle=true"
+    depends_on:
+      db:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_KEYCLOAK_URL: http://localhost:8080
+        VITE_KEYCLOAK_REALM: gestalt
+        VITE_KEYCLOAK_CLIENT_ID: open-web-drive
+        VITE_BACKEND_BASE_URL: http://localhost:8081
+        VITE_MAX_UPLOAD_SIZE_BYTES: "16106127360"
+    image: owd-frontend:latest
+    restart: unless-stopped
+    volumes:
+      - ../../frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  owd-db-data:
+  keycloak-data:
+  localstack-data:
