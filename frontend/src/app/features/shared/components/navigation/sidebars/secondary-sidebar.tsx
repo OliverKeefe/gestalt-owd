@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import {Flame, FolderClosed, GitBranch, LogOut, Settings2, Snowflake, SquareTerminal, Users} from "lucide-react"
+import {FolderClosed, LogOut, Snowflake, Users} from "lucide-react"
 import React from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {Link} from "@tanstack/react-router";
