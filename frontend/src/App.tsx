@@ -4,11 +4,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import { router } from "@/routes/app-routes";
 import {TooltipProvider} from "@/components/ui/tooltip.tsx";
 
-interface AppProps {
-    isAuthenticated: boolean;
-}
-
-function App({ isAuthenticated }: AppProps) {
+function App() {
     return (
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
             <TooltipProvider>
