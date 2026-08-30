@@ -1,16 +1,5 @@
 import * as React from "react"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-    DropdownMenu,
-    DropdownMenuTrigger,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
 import { ModeToggle } from "@/components/mode-toggle"
-import { SettingsToggle } from "../../buttons/settings-toggle"
 
 interface AppTopbarProps extends React.HTMLAttributes<HTMLDivElement> {
     children?: React.ReactNode;
