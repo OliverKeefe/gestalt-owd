@@ -22,7 +22,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar.tsx"
-import {getIconForFile } from "@react-symbols/icons/utils";
 import { FileIcon } from "@react-symbols/icons/utils";
 
 export function NavFavorites({
