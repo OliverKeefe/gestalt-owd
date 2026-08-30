@@ -14,7 +14,8 @@
   <img alt="License" src="https://img.shields.io/badge/license-MIT-white.svg">
 </p>
 
-**Open Web Drive** is a Dropbox / Google Drive clone I built in TypeScript (React.js), Go and Postgres, in an effort to learn Go. 
+**Open Web Drive** is a Dropbox / Google Drive clone I built in TypeScript (React.js), Go and Postgres, in an effort to learn Go. Future
+features will also include a document editor and IPFS gateway service.
 
 
 <h2 align="center">UI Screenshots</h2>
@@ -65,6 +66,38 @@ chmod +x /scripts/setup.sh && ./scripts/setup.sh
 ```shell
 chmod +x ./scripts/build.sh &&./scripts/build.sh
 ```
+
+**Deploy with Docker Compose** (development / homelab / small orgs)
+```shell
+cd deployments/compose
+
+cat > .env <<'EOF'
+# Copy to .env in this directory and adjust before `docker compose up`.
+# `.env` is gitignored; `.env.example` is committed.
+
+# PostgreSQL (Open Web Drive metadata database)
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=passwd
+POSTGRES_DB=metadatadb
+
+# Keycloak bootstrap admin (applies on first boot only)
+KEYCLOAK_ADMIN_USERNAME=admin
+KEYCLOAK_ADMIN_PASSWORD=change-me
+
+# LocalStack S3 static credentials (used by both localstack and backend)
+AWS_ACCESS_KEY_ID=test
+AWS_SECRET_ACCESS_KEY=test
+EOF
+
+docker compose up -d --build
+```
+
+For dev with hot reload: `docker compose -f docker-compose.yml -f docker-compose.dev.yml up`.
+Kubernetes deploys for larger/distributed setups are in progress under `deployments/kubernetes/`.
+The compose stack runs Keycloak, LocalStack S3, and Open Web Drive end to end —
+see `deployments/README.md` for the full breakdown (URLs, pinned images).
+
+Kubernetes deployments are still very much a work in progress.
 
 📄 License
 Distributed under the MIT License. See `LICENSE.md` for more information.
