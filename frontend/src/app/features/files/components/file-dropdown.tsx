@@ -24,9 +24,7 @@ if (!backendBaseUrl) throw new Error('VITE_BACKEND_BASE_URL is not set. Set it i
 function FileDropdown({ fileId, onDeleted, onInfo }: FileDropdownProps) {
     const userId = useAuthStore((s) => s.userId);
 
-    async function handleDelete(e: React.MouseEvent) {
-        e.stopPropagation();
-
+    async function handleDelete() {
         if (!userId) {
             console.error("No user ID found");
             return;
