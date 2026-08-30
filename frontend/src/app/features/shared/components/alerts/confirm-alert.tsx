@@ -9,7 +9,6 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
 
 interface ConfirmAlertDialogProps {
     onConfirm: () => void;
@@ -35,7 +34,7 @@ export function ConfirmAlertDialog({
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This file will be deleted and moved to the rubbish bin.
+                        {message}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
