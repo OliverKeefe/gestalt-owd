@@ -23,7 +23,6 @@ function copyWasmModules(): Plugin {
 
     return {
         name: 'copy-wasm',
-        apply: 'serve',
         configureServer() {
             copy()
         },
@@ -49,6 +48,13 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/vitest.setup.ts"],
+    env: {
+      VITE_BACKEND_BASE_URL: "http://localhost:8081",
+      VITE_KEYCLOAK_URL: "http://localhost:8080",
+      VITE_KEYCLOAK_REALM: "gestalt",
+      VITE_KEYCLOAK_CLIENT_ID: "open-web-drive",
+      VITE_MAX_UPLOAD_SIZE_BYTES: "16106127360",
+    },
   },
 })
 
