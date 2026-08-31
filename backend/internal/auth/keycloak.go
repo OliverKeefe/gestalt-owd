@@ -61,12 +61,6 @@ func (k *Authenticator) ValidateJWT(ctx context.Context, jwtB64 string) (context
 
 	newCtx := context.WithValue(ctx, userIDKey, claims.Subject)
 	return newCtx, true, nil
-
-}
-
-func (k *Authenticator) ReissueJWT() (jwt.Token, error) {
-	var tkn jwt.Token
-	return tkn, nil
 }
 
 func (k *Authenticator) InjectUserID(ctx context.Context, userID string) context.Context {
