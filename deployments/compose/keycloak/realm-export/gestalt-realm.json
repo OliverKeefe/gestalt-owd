@@ -11,13 +11,31 @@
     "realm": [
       { "name": "offline_access", "description": "Support for offline tokens" },
       { "name": "uma_authorization", "description": "Resource authorization" },
+      { "name": "admin", "description": "Full admin access across the realm" },
+      { "name": "user", "description": "Standard authenticated user" },
       {
         "name": "default-roles-gestalt",
         "composite": true,
         "composites": { "realm": ["offline_access", "uma_authorization"] }
       }
-    ]
+    ],
+    "client": {
+      "open-web-drive": [
+        { "name": "files:upload", "description": "Upload files" },
+        { "name": "files:download", "description": "Download files" },
+        { "name": "files:delete", "description": "Delete files" },
+        { "name": "files:share", "description": "Share files with groups and users" },
+        { "name": "admin", "description": "Full admin access to the drive" }
+      ]
+    }
   },
+  "groups": [
+    {
+      "name": "org-gestalt",
+      "path": "/org-gestalt",
+      "attributes": {}
+    }
+  ],
   "clients": [
     {
       "clientId": "open-web-drive",
@@ -31,7 +49,56 @@
       "redirectUris": ["http://localhost/*", "http://localhost:5173/*"],
       "webOrigins": ["http://localhost", "http://localhost:5173"],
       "attributes": {
-        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost/*,http://localhost:5173/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "consentRequired": false,
+          "config": {
+            "full.path": "false",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "groups",
+            "userinfo.token.claim": "true",
+            "multivalued": "true"
+          }
+        }
+      ],
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email"]
+    },
+    {
+      "clientId": "account",
+      "name": "Account",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "webOrigins": ["http://localhost", "http://localhost:5173"],
+      "redirectUris": ["http://localhost/*", "http://localhost:5173/*"],
+      "baseUrl": "/realms/gestalt/account/",
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost/*,http://localhost:5173/*"
+      }
+    },
+    {
+      "clientId": "account-console",
+      "name": "Account Console",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "webOrigins": ["http://localhost", "http://localhost:5173"],
+      "redirectUris": ["http://localhost/*", "http://localhost:5173/*"],
+      "baseUrl": "/realms/gestalt/account/",
+      "rootUrl": "${authBaseUrl}",
+      "attributes": {
         "post.logout.redirect.uris": "http://localhost/*,http://localhost:5173/*"
       }
     }
@@ -47,7 +114,11 @@
       "credentials": [
         { "type": "password", "value": "gestalt-admin", "temporary": false }
       ],
-      "realmRoles": ["default-roles-gestalt", "offline_access", "uma_authorization"]
+      "realmRoles": ["default-roles-gestalt", "offline_access", "uma_authorization", "admin", "user"],
+      "clientRoles": {
+        "open-web-drive": ["files:upload", "files:download", "files:delete", "files:share", "admin"]
+      },
+      "groups": ["/org-gestalt"]
     }
   ]
 }
