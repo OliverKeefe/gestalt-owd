@@ -2,7 +2,6 @@ package files
 
 import (
 	"backend/internal/api/message"
-	"backend/internal/auth"
 	"context"
 	"errors"
 	"fmt"
@@ -17,6 +16,7 @@ import (
 
 type downloadRepository interface {
 	FindMetadataByID(ctx context.Context, id uuid.UUID) (FileMetadata, error)
+	OwnerIsInUserGroups(ctx context.Context, ownerID uuid.UUID, groupNames []string) (bool, error)
 }
 
 type downloadBlob interface {
@@ -45,6 +45,10 @@ func (svc *DownloadService) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := svc.execute(r.Context(), request, w); err != nil {
+		if errors.Is(err, ErrForbidden) {
+			http.Error(w, "forbidden", http.StatusForbidden)
+			return
+		}
 		slog.Error("download failed", "error", err)
 		http.Error(w, "download failed", http.StatusInternalServerError)
 		return
@@ -57,18 +61,9 @@ func (svc *DownloadService) execute(ctx context.Context, req DownloadRequest, w 
 		return fmt.Errorf("file not found: %w", err)
 	}
 
-	userID, ok := auth.UserIDFromCtx(ctx)
-	if !ok {
-		return errors.New("unauthorized: no user id in context")
-	}
-
-	ownerID, err := uuid.Parse(userID)
+	ownerID, err := authorizeFile(ctx, svc.Db, metadata.OwnerID)
 	if err != nil {
-		return fmt.Errorf("invalid user id: %w", err)
-	}
-
-	if metadata.OwnerID != ownerID {
-		return errors.New("forbidden: user does not own this file")
+		return err
 	}
 
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, metadata.FileName))
