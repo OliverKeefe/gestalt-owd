@@ -2,7 +2,6 @@ package files
 
 import (
 	"backend/internal/api/message"
-	"backend/internal/auth"
 	"backend/internal/platform"
 	"context"
 	"errors"
@@ -14,6 +13,8 @@ import (
 )
 
 type deleteRepository interface {
+	FindMetadataByID(ctx context.Context, id uuid.UUID) (FileMetadata, error)
+	OwnerIsInUserGroups(ctx context.Context, ownerID uuid.UUID, groupNames []string) (bool, error)
 	DeleteMetadata(ctx context.Context, id uuid.UUID, ownerId uuid.UUID) error
 	DeleteFileData(ctx context.Context, id uuid.UUID, ownerId uuid.UUID) error
 }
@@ -40,6 +41,10 @@ func (svc *DeleteService) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := svc.execute(r.Context(), request); err != nil {
+		if errors.Is(err, ErrForbidden) {
+			http.Error(w, "forbidden", http.StatusForbidden)
+			return
+		}
 		http.Error(w, "unable to delete file", http.StatusExpectationFailed)
 		return
 	}
@@ -51,14 +56,14 @@ func (svc *DeleteService) Handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func (svc *DeleteService) execute(ctx context.Context, request DeleteRequest) error {
-	userID, ok := auth.UserIDFromCtx(ctx)
-	if !ok {
-		return errors.New("unable to get userID from context")
+	metadata, err := svc.Db.FindMetadataByID(ctx, request.ID)
+	if err != nil {
+		return fmt.Errorf("file not found: %w", err)
 	}
 
-	ownerID, err := uuid.Parse(userID)
+	ownerID, err := authorizeFile(ctx, svc.Db, metadata.OwnerID)
 	if err != nil {
-		return fmt.Errorf("unable to parse userID string to uuid: %w", err)
+		return err
 	}
 
 	err = svc.Db.DeleteFileData(ctx, request.ID, ownerID)
