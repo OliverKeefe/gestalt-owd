@@ -36,6 +36,7 @@ type mockUploadRepository struct {
 	getNextVersionFunc  func(ctx context.Context, fileID uuid.UUID) (int, error)
 	fileExistsFunc      func(ctx context.Context, fileID uuid.UUID) (bool, error)
 	upsertUserFunc      func(ctx context.Context, userID uuid.UUID, name string) error
+	syncGroupsFunc      func(ctx context.Context, userID uuid.UUID, groupNames []string) error
 }
 
 func (m *mockUploadRepository) CheckExists(ctx context.Context, fileID uuid.UUID, version int) (bool, error) {
@@ -76,6 +77,13 @@ func (m *mockUploadRepository) FileExists(ctx context.Context, fileID uuid.UUID)
 func (m *mockUploadRepository) UpsertUser(ctx context.Context, userID uuid.UUID, name string) error {
 	if m.upsertUserFunc != nil {
 		return m.upsertUserFunc(ctx, userID, name)
+	}
+	return nil
+}
+
+func (m *mockUploadRepository) SyncGroups(ctx context.Context, userID uuid.UUID, groupNames []string) error {
+	if m.syncGroupsFunc != nil {
+		return m.syncGroupsFunc(ctx, userID, groupNames)
 	}
 	return nil
 }
