@@ -18,6 +18,12 @@ var (
 	}
 )
 
+const clientID = "open-web-drive"
+
+func routeWithClientRole(a *auth.Authenticator, role string, h http.HandlerFunc) http.Handler {
+	return middleware.Protect(a, middleware.RequireClientRole(a, clientID, role, h))
+}
+
 func RegisterFileRoutes(mux *http.ServeMux, a *auth.Authenticator, db *database.MetadataDatabase) error {
 	bucketURL := os.Getenv("BLOB_BUCKET_URL")
 	if bucketURL == "" {
@@ -37,17 +43,17 @@ func RegisterFileRoutes(mux *http.ServeMux, a *auth.Authenticator, db *database.
 	updateSvc := f.NewUpdateMetadataService(repository, client, bucketURL)
 	searchSvc := f.NewSearchService(repository, client, bucketURL)
 
-	uploadEndpoint := route(a, uploadSvc.Handle)
+	uploadEndpoint := routeWithClientRole(a, "files:upload", uploadSvc.Handle)
 	mux.Handle(
 		"POST /api/files/upload",
 		uploadEndpoint,
 	)
-	downloadRoute := route(a, downloadSvc.Handle)
+	downloadRoute := routeWithClientRole(a, "files:download", downloadSvc.Handle)
 	mux.Handle(
 		"POST /api/files/download",
 		downloadRoute,
 	)
-	deleteRoute := route(a, deleteSvc.Handle)
+	deleteRoute := routeWithClientRole(a, "files:delete", deleteSvc.Handle)
 	mux.Handle(
 		"DELETE /api/files/delete",
 		deleteRoute,
