@@ -2,7 +2,9 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/MicahParks/keyfunc/v3"
@@ -11,10 +13,28 @@ import (
 
 type ctxStringKey string
 
-type ctxIntKey int
+type ctxKey int
 
 const userIDKey ctxStringKey = "userID"
-const claimsKey ctxIntKey = iota
+const claimsKey ctxKey = iota
+const typedClaimsKey ctxKey = iota
+
+type RealmAccess struct {
+	Roles []string `json:"roles"`
+}
+
+type ClientAccess struct {
+	Roles []string `json:"roles"`
+}
+
+type KeycloakClaims struct {
+	jwt.RegisteredClaims
+	Email             string                  `json:"email"`
+	PreferredUsername string                  `json:"preferred_username"`
+	Groups            []string                `json:"groups"`
+	RealmAccess       RealmAccess             `json:"realm_access"`
+	ResourceAccess    map[string]ClientAccess `json:"resource_access"`
+}
 
 type Authenticator struct {
 	Issuer  string
@@ -35,7 +55,7 @@ func New(issuer, jwksUrl string) (*Authenticator, error) {
 }
 
 func (k *Authenticator) ValidateJWT(ctx context.Context, jwtB64 string) (context.Context, bool, error) {
-	claims := &jwt.RegisteredClaims{}
+	claims := &KeycloakClaims{}
 	kf := func(t *jwt.Token) (any, error) {
 		return k.KeyFunc.Keyfunc(t)
 	}
@@ -59,7 +79,18 @@ func (k *Authenticator) ValidateJWT(ctx context.Context, jwtB64 string) (context
 		return ctx, false, errors.New("invalid issuer")
 	}
 
+	claimsBytes, err := json.Marshal(claims)
+	if err != nil {
+		return ctx, false, fmt.Errorf("failed to marshal claims: %w", err)
+	}
+	claimsMap := make(map[string]interface{})
+	if err := json.Unmarshal(claimsBytes, &claimsMap); err != nil {
+		return ctx, false, fmt.Errorf("failed to unmarshal claims: %w", err)
+	}
+
 	newCtx := context.WithValue(ctx, userIDKey, claims.Subject)
+	newCtx = context.WithValue(newCtx, claimsKey, claimsMap)
+	newCtx = context.WithValue(newCtx, typedClaimsKey, claims)
 	return newCtx, true, nil
 }
 
@@ -69,4 +100,11 @@ func (k *Authenticator) InjectUserID(ctx context.Context, userID string) context
 
 func (k *Authenticator) InjectClaims(ctx context.Context, claims map[string]interface{}) context.Context {
 	return context.WithValue(ctx, claimsKey, claims)
+}
+
+// InjectKeycloakClaims stores a fully-populated KeycloakClaims value in the
+// context. Primarily useful for tests and for contexts built outside JWT
+// validation.
+func (k *Authenticator) InjectKeycloakClaims(ctx context.Context, claims *KeycloakClaims) context.Context {
+	return context.WithValue(ctx, typedClaimsKey, claims)
 }
