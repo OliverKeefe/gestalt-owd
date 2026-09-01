@@ -41,13 +41,96 @@ func (db *FileRepository) GetNextVersion(ctx context.Context, fileID uuid.UUID) 
 	return next, err
 }
 
-// UpsertUser inserts a user if they don't already exist.
-// TODO: extract preferred_username from JWT claims when auth layer supports it.
+// UpsertUser inserts a user if they don't already exist, using the
+// preferred_username (or email) from the token as the display name.
 func (db *FileRepository) UpsertUser(ctx context.Context, userID uuid.UUID, name string) error {
 	const q = `INSERT INTO users (id, name) VALUES ($1, $2)
-		ON CONFLICT (id) DO NOTHING;`
+		ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;`
 	_, err := db.Pool.Exec(ctx, q, userID, name)
 	return err
+}
+
+// OwnerIsInUserGroups reports whether the given owner_id (which may be a group
+// UUID) corresponds to a group whose name is present in the user's Keycloak
+// groups claim. If ownerID is a user-owned file this returns false; callers
+// should first check direct ownership.
+func (db *FileRepository) OwnerIsInUserGroups(ctx context.Context, ownerID uuid.UUID, groupNames []string) (bool, error) {
+	if len(groupNames) == 0 {
+		return false, nil
+	}
+	const q = `SELECT EXISTS (
+		SELECT 1 FROM groups g
+		WHERE g.id = $1 AND g.name = ANY($2)
+	);`
+	var exists bool
+	err := db.Pool.QueryRow(ctx, q, ownerID, groupNames).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("check group ownership: %w", err)
+	}
+	return exists, nil
+}
+
+// SyncGroups mirrors the user's Keycloak group memberships into the local
+// orgs, groups and group_memberships tables. Keycloak's JWT `groups` claim is
+// authoritative for membership, so each authenticated user's groups are
+// upserted whenever this runs. Deterministic UUIDs derived from group/org
+// names keep the local schema in lockstep with Keycloak across syncs without
+// manual seeding, and keep group owner_id values stable for group-owned files.
+func (db *FileRepository) SyncGroups(ctx context.Context, userID uuid.UUID, groupNames []string) error {
+	if len(groupNames) == 0 {
+		return nil
+	}
+
+	tx, err := db.Pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("begin group sync: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	const upsertOrg = `
+		INSERT INTO orgs (id, name)
+		VALUES ($1, $2)
+		ON CONFLICT (id) DO NOTHING;`
+
+	const upsertGroup = `
+		INSERT INTO groups (id, org_id, name, keycloak_group_id)
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (org_id, name) DO UPDATE
+			SET keycloak_group_id = EXCLUDED.keycloak_group_id,
+			    updated_at = now();`
+
+	const insertMembership = `
+		INSERT INTO group_memberships (group_id, user_id)
+		VALUES ($1, $2)
+		ON CONFLICT DO NOTHING;`
+
+	for _, name := range groupNames {
+		if name == "" {
+			continue
+		}
+
+		// A Keycloak group doubles as its own tenant (org) here. Deriving
+		// deterministic UUIDs makes sync idempotent and owner_id stable.
+		groupID := uuid.NewSHA1(uuid.NameSpaceDNS, []byte(name))
+		orgID := uuid.NewSHA1(uuid.NameSpaceDNS, []byte(name))
+
+		if _, err := tx.Exec(ctx, upsertOrg, orgID, name); err != nil {
+			return fmt.Errorf("upsert org: %w", err)
+		}
+
+		if _, err := tx.Exec(ctx, upsertGroup, groupID, orgID, name, name); err != nil {
+			return fmt.Errorf("upsert group: %w", err)
+		}
+
+		if _, err := tx.Exec(ctx, insertMembership, groupID, userID); err != nil {
+			return fmt.Errorf("insert group membership: %w", err)
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit group sync: %w", err)
+	}
+	return nil
 }
 
 // FileExists checks if a files row exists for the given file ID.
@@ -105,32 +188,42 @@ func (db *FileRepository) PersistMetadata(ctx context.Context, metadata FileMeta
 	return err
 }
 
-// FindAllMetadata returns all file_metadata rows for a user, with cursor-based pagination.
-func (db *FileRepository) FindAllMetadata(ctx context.Context, ownerID uuid.UUID, cursor *MetadataCursor, limit int) ([]FileMetadata, error) {
+// FindAllMetadata returns all file_metadata rows for a user (personal files)
+// plus files owned by groups the user belongs to, with cursor-based pagination.
+func (db *FileRepository) FindAllMetadata(ctx context.Context, ownerID uuid.UUID, groupNames []string, cursor *MetadataCursor, limit int) ([]FileMetadata, error) {
 	var (
 		rows pgx.Rows
 		err  error
 	)
 
+	selectOwner := `owner_id = $1`
+	args := []any{ownerID}
+	if len(groupNames) > 0 {
+		selectOwner = fmt.Sprintf(`(owner_id = $1 OR owner_id IN (SELECT id FROM groups WHERE name = ANY($%d)))`, len(groupNames)+1)
+		args = append(args, groupNames)
+	}
+
 	if cursor == nil || cursor.ID == uuid.Nil || cursor.ModifiedAt.IsZero() {
-		rows, err = db.Pool.Query(ctx, `
+		query := fmt.Sprintf(`
 			SELECT id, file_id, file_name, path, relative_path, size, file_type,
 				owner_id, version, hash, created_at, modified_at, uploaded_at
 			FROM file_metadata
-			WHERE owner_id = $1
+			WHERE %s
 			ORDER BY modified_at DESC, id DESC
-			LIMIT $2;
-		`, ownerID, limit)
+			LIMIT $%d;
+		`, selectOwner, len(args)+1)
+		rows, err = db.Pool.Query(ctx, query, append(args, limit)...)
 	} else {
-		rows, err = db.Pool.Query(ctx, `
+		afterCursor := fmt.Sprintf(`(modified_at, id) < ($%d, $%d)`, len(args)+1, len(args)+2)
+		query := fmt.Sprintf(`
 			SELECT id, file_id, file_name, path, relative_path, size, file_type,
 				owner_id, version, hash, created_at, modified_at, uploaded_at
 			FROM file_metadata
-			WHERE owner_id = $1
-				AND (modified_at, id) < ($2, $3)
+			WHERE %s AND %s
 			ORDER BY modified_at DESC, id DESC
-			LIMIT $4;
-		`, ownerID, cursor.ModifiedAt, cursor.ID, limit)
+			LIMIT $%d;
+		`, selectOwner, afterCursor, len(args)+3)
+		rows, err = db.Pool.Query(ctx, query, append(args, cursor.ModifiedAt, cursor.ID, limit)...)
 	}
 	if err != nil {
 		return nil, err
