@@ -16,7 +16,8 @@ import (
 )
 
 type mockDownloadRepository struct {
-	findMetadataByIDFunc func(ctx context.Context, id uuid.UUID) (FileMetadata, error)
+	findMetadataByIDFunc    func(ctx context.Context, id uuid.UUID) (FileMetadata, error)
+	ownerIsInUserGroupsFunc func(ctx context.Context, ownerID uuid.UUID, groupNames []string) (bool, error)
 }
 
 func (m *mockDownloadRepository) FindMetadataByID(ctx context.Context, id uuid.UUID) (FileMetadata, error) {
@@ -24,6 +25,13 @@ func (m *mockDownloadRepository) FindMetadataByID(ctx context.Context, id uuid.U
 		return m.findMetadataByIDFunc(ctx, id)
 	}
 	return FileMetadata{}, nil
+}
+
+func (m *mockDownloadRepository) OwnerIsInUserGroups(ctx context.Context, ownerID uuid.UUID, groupNames []string) (bool, error) {
+	if m.ownerIsInUserGroupsFunc != nil {
+		return m.ownerIsInUserGroupsFunc(ctx, ownerID, groupNames)
+	}
+	return false, nil
 }
 
 type mockDownloadBlob struct {
@@ -156,8 +164,59 @@ func TestDownloadService_Handle_Forbidden(t *testing.T) {
 	rec := httptest.NewRecorder()
 	svc.Handle(rec, req)
 
-	if rec.Code != http.StatusInternalServerError {
-		t.Fatalf("expected status %d, got %d", http.StatusInternalServerError, rec.Code)
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("expected status %d, got %d", http.StatusForbidden, rec.Code)
+	}
+}
+
+func TestDownloadService_Handle_GroupAccess(t *testing.T) {
+	groupID := uuid.New()
+	metaID := uuid.New()
+	userUUID := uuid.New()
+
+	repo := &mockDownloadRepository{
+		findMetadataByIDFunc: func(ctx context.Context, id uuid.UUID) (FileMetadata, error) {
+			return FileMetadata{
+				ID:       metaID,
+				OwnerID:  groupID,
+				FileName: "shared.pdf",
+				Size:     2048,
+			}, nil
+		},
+		ownerIsInUserGroupsFunc: func(ctx context.Context, ownerID uuid.UUID, groupNames []string) (bool, error) {
+			if ownerID != groupID {
+				t.Errorf("OwnerIsInUserGroups called with owner %v; want %v", ownerID, groupID)
+			}
+			return true, nil
+		},
+	}
+
+	blob := &mockDownloadBlob{
+		downloadFunc: func(ctx context.Context, key string, writer io.Writer, opts *blob.ReaderOptions) error {
+			_, err := writer.Write([]byte("shared content"))
+			return err
+		},
+	}
+
+	svc := NewDownloadService(repo, blob, "test-bucket")
+
+	body, _ := json.Marshal(DownloadRequest{ID: metaID})
+	req := httptest.NewRequest(http.MethodPost, "/api/files/download", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	ctx := context.Background()
+	authenticator := &auth.Authenticator{}
+	ctx = authenticator.InjectUserID(ctx, userUUID.String())
+	ctx = authenticator.InjectKeycloakClaims(ctx, &auth.KeycloakClaims{
+		Groups: []string{"org-gestalt"},
+	})
+	req = req.WithContext(ctx)
+
+	rec := httptest.NewRecorder()
+	svc.Handle(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
 	}
 }
 
