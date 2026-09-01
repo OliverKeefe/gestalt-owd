@@ -6,11 +6,13 @@ CREATE TABLE files (
 COMMENT ON TABLE files IS 'Stable file identity. Immutable across renames, moves, and versions.';
 
 -- FILE METADATA (versioned file attributes)
+-- owner_id holds either a user UUID (personal file) or a group UUID
+-- (group-owned file). No FK constraint so both namespaces are allowed.
 CREATE TABLE file_metadata (
     id UUID NOT NULL PRIMARY KEY,
     file_id UUID NOT NULL REFERENCES files(id) ON DELETE CASCADE,
     version INTEGER NOT NULL DEFAULT 1,
-    owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    owner_id UUID NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     path VARCHAR(255) NOT NULL,
     relative_path VARCHAR(255) NOT NULL,
@@ -22,7 +24,7 @@ CREATE TABLE file_metadata (
     uploaded_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT uq_file_metadata_version UNIQUE (file_id, version)
 );
-COMMENT ON TABLE file_metadata IS 'Versioned file attributes. Each upload creates a new row with version + 1.';
+COMMENT ON TABLE file_metadata IS 'Versioned file attributes. Each upload creates a new row with version + 1. owner_id may be a user or group UUID.';
 
 -- INDEX FOR FILE METADATA PAGINATION
 CREATE INDEX idx_file_owner_modified
