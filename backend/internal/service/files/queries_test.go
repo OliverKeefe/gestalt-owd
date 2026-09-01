@@ -41,7 +41,7 @@ func TestQuery_FindAllMetadata_NoCursor(t *testing.T) {
 		WithArgs(userID, limit).
 		WillReturnRows(rows)
 
-	res, err := repo.FindAllMetadata(ctx, userID, nil, limit)
+	res, err := repo.FindAllMetadata(ctx, userID, nil, nil, limit)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,12 +88,67 @@ func TestQuery_FindAllMetadata_Cursor(t *testing.T) {
 		WithArgs(userID, cur.ModifiedAt, cur.ID, limit).
 		WillReturnRows(rows)
 
-	res, err := repo.FindAllMetadata(ctx, userID, &cur, limit)
+	res, err := repo.FindAllMetadata(ctx, userID, nil, &cur, limit)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(res) != 2 {
 		t.Fatalf("expected 2 rows, got %d", len(res))
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestQuery_SyncGroups(t *testing.T) {
+	mock, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mock.Close()
+
+	repo := NewFileRepository(mock)
+	ctx := context.Background()
+	userID := uuid.New()
+	groupNames := []string{"org-gestalt", "team-core"}
+
+	// IDs derived from group/org names.
+	groupID1 := uuid.NewSHA1(uuid.NameSpaceDNS, []byte("org-gestalt"))
+	orgID1 := uuid.NewSHA1(uuid.NameSpaceDNS, []byte("org-gestalt"))
+	groupID2 := uuid.NewSHA1(uuid.NameSpaceDNS, []byte("team-core"))
+	orgID2 := uuid.NewSHA1(uuid.NameSpaceDNS, []byte("team-core"))
+
+	mock.ExpectBegin()
+	mock.ExpectExec(`INSERT INTO orgs`).WithArgs(orgID1, "org-gestalt").WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	mock.ExpectExec(`INSERT INTO groups`).WithArgs(groupID1, orgID1, "org-gestalt", "org-gestalt").WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	mock.ExpectExec(`INSERT INTO group_memberships`).WithArgs(groupID1, userID).WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	mock.ExpectExec(`INSERT INTO orgs`).WithArgs(orgID2, "team-core").WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	mock.ExpectExec(`INSERT INTO groups`).WithArgs(groupID2, orgID2, "team-core", "team-core").WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	mock.ExpectExec(`INSERT INTO group_memberships`).WithArgs(groupID2, userID).WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	mock.ExpectCommit()
+
+	if err := repo.SyncGroups(ctx, userID, groupNames); err != nil {
+		t.Fatalf("SyncGroups returned error: %v", err)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestQuery_SyncGroups_NoGroups(t *testing.T) {
+	mock, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mock.Close()
+
+	repo := NewFileRepository(mock)
+	ctx := context.Background()
+
+	if err := repo.SyncGroups(ctx, uuid.New(), nil); err != nil {
+		t.Fatalf("SyncGroups with no groups returned error: %v", err)
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
