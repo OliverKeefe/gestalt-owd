@@ -15,7 +15,7 @@ import (
 type searchRepository interface {
 	FindMetadataByID(ctx context.Context, ID uuid.UUID) (FileMetadata, error)
 	FindMetadata(ctx context.Context, m FileMetadata) ([]FileMetadata, error)
-	FindAllMetadata(ctx context.Context, ownerID uuid.UUID, cursor *MetadataCursor, limit int) ([]FileMetadata, error)
+	FindAllMetadata(ctx context.Context, ownerID uuid.UUID, groupNames []string, cursor *MetadataCursor, limit int) ([]FileMetadata, error)
 }
 
 type SearchService struct {
@@ -68,7 +68,9 @@ func (svc *SearchService) execute(ctx context.Context, request GetAllMetadataReq
 		return nil, errors.New("invalid user id in JWT claims")
 	}
 
-	files, err := svc.Db.FindAllMetadata(ctx, ownerID, request.Cursor, request.Limit)
+	groupNames, _ := auth.GroupsFromCtx(ctx)
+
+	files, err := svc.Db.FindAllMetadata(ctx, ownerID, groupNames, request.Cursor, request.Limit)
 	if err != nil {
 		return nil, err
 	}
