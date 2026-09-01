@@ -33,6 +33,7 @@ type uploadRepository interface {
 	FileExists(ctx context.Context, fileID uuid.UUID) (bool, error)
 	CheckExists(ctx context.Context, fileID uuid.UUID, version int) (bool, error)
 	UpsertUser(ctx context.Context, userID uuid.UUID, name string) error
+	SyncGroups(ctx context.Context, userID uuid.UUID, groupNames []string) error
 }
 
 type blobStorage interface {
@@ -59,22 +60,6 @@ func NewUploadService(db uploadRepository, client blobStorage, bucketUrl string)
 }
 
 func (svc *UploadService) Handle(w http.ResponseWriter, r *http.Request) {
-	//userID, ok := auth.UserIDFromCtx(r.Context())
-	//if !ok {
-	//	http.Error(w, "upload failed", http.StatusUnauthorized)
-	//	return
-	//}
-
-	//hasClaim, err := auth.HasClaim(r.Context(), uuid.MustParse(userID), "")
-	//if err != nil {
-	//	slog.Error("upload failed", "error", err)
-	//}
-	//
-	//if !hasClaim {
-	//	http.Error(w, "upload failed", http.StatusUnauthorized)
-	//	return
-	//}
-
 	maxUploadStr := os.Getenv("MAX_UPLOAD_BYTES")
 	if maxUploadStr == "" {
 		slog.Error("MAX_UPLOAD_BYTES is required")
@@ -130,9 +115,26 @@ func (svc *UploadService) execute(r *http.Request) error {
 		return errors.New("unable to get UserID from context")
 	}
 
-	parsedUserID := uuid.MustParse(userID)
-	if err := svc.Db.UpsertUser(ctx, parsedUserID, userID); err != nil {
+	parsedUserID, err := uuid.Parse(userID)
+	if err != nil {
+		return fmt.Errorf("invalid user id in jwt claims: %w", err)
+	}
+
+	displayName := userID
+	if name, ok := auth.PreferredUsernameFromCtx(ctx); ok {
+		displayName = name
+	} else if email, ok := auth.EmailFromCtx(ctx); ok {
+		displayName = email
+	}
+
+	if err := svc.Db.UpsertUser(ctx, parsedUserID, displayName); err != nil {
 		return fmt.Errorf("failed to upsert user: %w", err)
+	}
+
+	if groupNames, ok := auth.GroupsFromCtx(ctx); ok {
+		if err := svc.Db.SyncGroups(ctx, parsedUserID, groupNames); err != nil {
+			return fmt.Errorf("failed to sync user groups: %w", err)
+		}
 	}
 
 	for {
@@ -178,7 +180,7 @@ func (svc *UploadService) execute(r *http.Request) error {
 					ID:           metaID,
 					FileID:       fileID,
 					Version:      nextVersion,
-					OwnerID:      uuid.MustParse(userID),
+					OwnerID:      parsedUserID,
 					FileName:     decodedRequest.FileName,
 					Path:         decodedRequest.Path,
 					RelativePath: decodedRequest.RelativePath,
@@ -204,7 +206,7 @@ func (svc *UploadService) execute(r *http.Request) error {
 				return fmt.Errorf("filedata part received before metadata part for %s", idToStr)
 			}
 
-			ownerID := uuid.MustParse(userID)
+			ownerID := parsedUserID
 			if err := svc.saveFileData(ctx, ownerID, bytes.NewReader(data), part.FileName()); err != nil {
 				return err
 			}
